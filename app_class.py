@@ -1,19 +1,23 @@
 import flet as ft  # type: ignore
+from logs.logger_class import GrabLogs
 
 
 # The `AppFace` class creates a simple app interface with a sidebar navigation rail and content area
 # for home, profile, and settings pages.
 class AppFace:
+    logger = GrabLogs().configure_logger("main.log")
+
     def __init__(self, page):
         """
         The function initializes a page with a title, horizontal alignment, sidebar, and main content
         area layout.
-        
+
         :param page: The `page` parameter in the `__init__` method is used to initialize a page object.
         In this code snippet, the `page` object seems to be a part of a user interface framework
         (possibly `ft` module) and is being customized with specific attributes like title and
         horizontal alignment
         """
+
         self.page = page
         self.page.title = "KPI Reporting v.01"
         self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -85,7 +89,14 @@ class AppFace:
         self.page.update()
 
     def show_settings(self, e):
-        self.content.controls = [ft.Text("This is the settings page.")]
+        self.content.controls = [
+            ft.Text("Settings"),
+            ft.Text("Clear logs"),
+            ft.OutlinedButton(
+                text="Clear all current log files",
+                on_click=lambda: self.logger.clear_logs(),
+            ),
+        ]
         self.page.update()
 
     def on_nav_change(self, e):

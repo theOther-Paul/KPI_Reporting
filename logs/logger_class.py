@@ -20,7 +20,7 @@ class GrabLogs:
         logging.basicConfig(
             filename=f"{os.getcwd()}\\logs\\{fname}",
             level=logging.DEBUG,
-            format="%a(asctime)s %(message)s",
+            format="%(asctime)s %(message)s",
             filemode="a",
         )
 
@@ -37,9 +37,28 @@ class GrabLogs:
         elif 1 <= level <= 10:
             logging.debug(message)
 
-    def clear_logs(self):
-        with open(self.log_file, "w"):
-            pass
+    def clear_logs(self, logs_dir: str):
+        """
+        Deletes all log files (.log extension) in the specified directory.
+
+        Args:
+        - logs_dir (str): Directory path where log files should be deleted.
+        """
+        try:
+            # List all files in the logs directory
+            files = os.listdir(logs_dir)
+
+            # Filter only files with .log extension
+            log_files = [file for file in files if file.endswith(".log")]
+
+            # Delete each log file
+            for file in log_files:
+                os.remove(os.path.join(logs_dir, file))
+
+            print(f"Deleted {len(log_files)} log file(s) in {logs_dir}")
+
+        except Exception as e:
+            print(f"Error deleting log files: {e}")
 
     @staticmethod
     def get_level(keyword: str = "Info"):
