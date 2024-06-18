@@ -1,6 +1,6 @@
 import flet as ft  # type: ignore
 from app_class import AppFace
-from logs import logger_class
+from logs.logger_class import GrabLogs
 
 
 def main(page: ft.Page):
@@ -8,12 +8,13 @@ def main(page: ft.Page):
 
 
 if __name__ == "__main__":
-    logger = logger_class.Logger("logs/main.log")
-
+    logger = GrabLogs().configure_logger("main.log")
     try:
         ft.app(target=main)
-        logger.logger.info("Application started succesfully")
+        logger.form_log("Application started successfully!", logger.get_level("info"))
 
     except Exception as e:
-        logger.logger.critical(f"App failed to start because of {e}", exc_info=True)
-        logger.logger.debug(e, exc_info=True)
+        logger.form_log(
+            f"Application failed to start because of exception: {e}",
+            logger.get_level("crit"),
+        )
