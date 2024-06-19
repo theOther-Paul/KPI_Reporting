@@ -3,7 +3,6 @@ from logs.logger_class import GrabLogs
 
 
 # The `AppFace` class creates a simple app interface with a sidebar navigation rail and content area
-# for home, profile, and settings pages.
 class AppFace:
     logger = GrabLogs().configure_logger("main.log")
 
@@ -60,19 +59,31 @@ class AppFace:
             group_alignment=-0.9,
             destinations=[
                 ft.NavigationRailDestination(
-                    icon=ft.icons.HOME,
-                    selected_icon=ft.icons.HOME,
+                    icon=ft.icons.HOME_OUTLINED,
+                    selected_icon=ft.icons.HOME_FILLED,
                     label="Home",
                 ),
                 ft.NavigationRailDestination(
-                    icon=ft.icons.PERSON,
-                    selected_icon=ft.icons.PERSON,
-                    label="Profile",
+                    icon=ft.icons.TABLE_CHART_SHARP,
+                    selected_icon=ft.icons.TABLE_VIEW_SHARP,
+                    label="Reports",
+                ),
+                ft.NavigationRailDestination(
+                    icon=ft.icons.SCATTER_PLOT_OUTLINED,
+                    selected_icon=ft.icons.SCATTER_PLOT_SHARP,
+                    label="Show Data",
                 ),
                 ft.NavigationRailDestination(
                     icon=ft.icons.SETTINGS,
                     selected_icon=ft.icons.SETTINGS,
                     label="Settings",
+                ),
+                ft.NavigationRailDestination(),
+                ft.NavigationRailDestination(),
+                ft.NavigationRailDestination(
+                    icon=ft.icons.DARK_MODE_OUTLINED,
+                    selected_icon=ft.icons.DARK_MODE_SHARP,
+                    label="Toggle Theme",
                 ),
             ],
             on_change=self.on_nav_change,
@@ -81,11 +92,17 @@ class AppFace:
         return rail
 
     def show_home(self, e):
-        self.content.controls = [ft.Text("This is the home page.")]
+        self.content.controls = [ft.Text("Welcome to the KPI Reporting App")]
         self.page.update()
 
-    def show_profile(self, e):
-        self.content.controls = [ft.Text("This is the profile page.")]
+    def show_report_downloader(self, e):
+        self.content.controls = [
+            ft.Text("This Section is used to check data and download reports")
+        ]
+        self.page.update()
+
+    def show_plot(self, e):
+        self.content.controls = [ft.Text("Plot Section under construction")]
         self.page.update()
 
     def show_settings(self, e):
@@ -99,11 +116,44 @@ class AppFace:
         ]
         self.page.update()
 
+    def show_themes(self, e):
+        # needs fix
+        def check_item_clicked(e):
+            e.control.checked = not e.control.checked
+            self.page.update()
+
+        pb = ft.PopupMenuButton(
+            items=[
+                ft.PopupMenuItem(text="Item 1"),
+                ft.PopupMenuItem(icon=ft.icons.POWER_INPUT, text="Check power"),
+                ft.PopupMenuItem(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.icons.HOURGLASS_TOP_OUTLINED),
+                            ft.Text("Item with a custom content"),
+                        ]
+                    ),
+                    on_click=lambda _: print("Button with a custom content clicked!"),
+                ),
+                ft.PopupMenuItem(),  # divider
+                ft.PopupMenuItem(
+                    text="Checked item", checked=False, on_click=check_item_clicked
+                ),
+            ],
+            menu_position=UNDER,
+        )
+
+        self.page.add(pb)
+
     def on_nav_change(self, e):
         selected_index = e.control.selected_index
         if selected_index == 0:
             self.show_home(e)
         elif selected_index == 1:
-            self.show_profile(e)
-        elif selected_index == 2:
+            self.show_report_downloader(e)
+        elif selected_index == 3:
             self.show_settings(e)
+        elif selected_index == 2:
+            self.show_plot(e)
+        elif selected_index == 4:
+            self.show_themes()
