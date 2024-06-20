@@ -74,22 +74,42 @@ class AppFace:
                     label="Show Data",
                 ),
                 ft.NavigationRailDestination(
-                    icon=ft.icons.SETTINGS,
-                    selected_icon=ft.icons.SETTINGS,
+                    icon=ft.icons.SETTINGS_OUTLINED,
+                    selected_icon=ft.icons.SETTINGS_SHARP,
                     label="Settings",
-                ),
-                ft.NavigationRailDestination(),
-                ft.NavigationRailDestination(),
-                ft.NavigationRailDestination(
-                    icon=ft.icons.DARK_MODE_OUTLINED,
-                    selected_icon=ft.icons.DARK_MODE_SHARP,
-                    label="Toggle Theme",
                 ),
             ],
             on_change=self.on_nav_change,
+            expand=True,
         )
 
-        return rail
+        popup_menu = ft.PopupMenuButton(
+            items=[
+                ft.PopupMenuItem(
+                    text="Light Theme",
+                    on_click=lambda e: self.change_theme(ft.ThemeMode.LIGHT),
+                ),
+                ft.PopupMenuItem(
+                    text="Dark Theme",
+                    on_click=lambda e: self.change_theme(ft.ThemeMode.DARK),
+                ),
+                ft.PopupMenuItem(
+                    text="System Default",
+                    on_click=lambda e: self.change_theme(ft.ThemeMode.SYSTEM),
+                ),
+            ],
+            icon=ft.icons.DARK_MODE_OUTLINED,
+        )
+
+        return ft.Column(
+            controls=[
+                rail,
+                ft.Container(
+                    content=popup_menu, alignment=ft.alignment.center, margin=10
+                ),
+            ],
+            expand=True,
+        )
 
     def show_home(self, e):
         self.content.controls = [ft.Text("Welcome to the KPI Reporting App")]
@@ -116,34 +136,14 @@ class AppFace:
         ]
         self.page.update()
 
-    def show_themes(self, e):
-        # needs fix
-        def check_item_clicked(e):
-            e.control.checked = not e.control.checked
-            self.page.update()
+    def check_item_clicked(self, param):
+        param.control.checked = not param.control.checked
+        self.page.update()
 
-        pb = ft.PopupMenuButton(
-            items=[
-                ft.PopupMenuItem(text="Item 1"),
-                ft.PopupMenuItem(icon=ft.icons.POWER_INPUT, text="Check power"),
-                ft.PopupMenuItem(
-                    content=ft.Row(
-                        [
-                            ft.Icon(ft.icons.HOURGLASS_TOP_OUTLINED),
-                            ft.Text("Item with a custom content"),
-                        ]
-                    ),
-                    on_click=lambda _: print("Button with a custom content clicked!"),
-                ),
-                ft.PopupMenuItem(),  # divider
-                ft.PopupMenuItem(
-                    text="Checked item", checked=False, on_click=check_item_clicked
-                ),
-            ],
-            menu_position=UNDER,
-        )
-
-        self.page.add(pb)
+    def change_theme(self, theme_mode: ft.ThemeMode):
+        self.page.theme_mode = theme_mode
+        self.page.update()
+        self.logger.log("info", f"Theme changed to {theme_mode}")
 
     def on_nav_change(self, e):
         selected_index = e.control.selected_index
