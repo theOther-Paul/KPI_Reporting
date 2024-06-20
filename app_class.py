@@ -1,5 +1,6 @@
-import flet as ft  # type: ignore
+import flet as ft
 from logs.logger_class import GrabLogs
+from headers import file_ops
 
 
 # The `AppFace` class creates a simple app interface with a sidebar navigation rail and content area
@@ -117,8 +118,28 @@ class AppFace:
 
     def show_report_downloader(self, e):
         self.content.controls = [
-            ft.Text("This Section is used to check data and download reports")
+            ft.Text("This Section is used to check data and download reports"),
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text("Raw Data File Section"),
+                        ft.FilledButton(
+                            text="Open Raw Data",
+                            on_click=lambda e: file_ops.FilePrep().open_raw_data(),
+                            tooltip="Opens the raw data file",
+                        ),
+                    ],
+                ),
+                margin=10,
+                padding=10,
+                alignment=ft.alignment.center,
+                bgcolor=ft.colors.GREEN,
+                width=200,
+                height=150,
+                border_radius=10,
+            ),
         ]
+
         self.page.update()
 
     def show_plot(self, e):

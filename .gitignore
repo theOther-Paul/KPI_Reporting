@@ -157,6 +157,7 @@ cython_debug/
 __pycache__
 flet_examples
 testing.py
+tests.py
 misc
 
 # PyCharm

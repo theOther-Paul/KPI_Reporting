@@ -24,5 +24,8 @@ An interface similar with Trello, that contains a sidebar used for navigation, w
 
 ## Presentation
 
+## Raw Data
+The data offered and presented was created using [mockaroo api](https://mockaroo.com/) and has no correlation with real people. This data is esential for the KPI reports supposed above
+
 ## How to
 
