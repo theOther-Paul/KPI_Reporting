@@ -146,14 +146,24 @@ class AppFace:
         self.logger.log("info", f"Theme changed to {theme_mode}")
 
     def on_nav_change(self, e):
+        """
+        The function `on_nav_change` takes an event `e` and based on the selected index, it calls a
+        corresponding action method.
+
+        :param e: The `e` parameter in the `on_nav_change` function likely represents an event object
+        that contains information about the navigation change event that occurred. This object may
+        include details such as the control that triggered the event and any relevant data associated
+        with the event.
+        """
         selected_index = e.control.selected_index
-        if selected_index == 0:
-            self.show_home(e)
-        elif selected_index == 1:
-            self.show_report_downloader(e)
-        elif selected_index == 3:
-            self.show_settings(e)
-        elif selected_index == 2:
-            self.show_plot(e)
-        elif selected_index == 4:
-            self.show_themes()
+        actions = {
+            0: self.show_home,
+            1: self.show_report_downloader,
+            2: self.show_plot,
+            3: self.show_settings,
+            4: self.change_theme,
+        }
+
+        action = actions.get(selected_index)
+        if action:
+            action(e)
