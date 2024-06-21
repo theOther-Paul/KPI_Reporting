@@ -1,6 +1,7 @@
 import flet as ft
 from logs.logger_class import GrabLogs
 from headers import file_ops
+import pandas as pd
 
 
 # The `AppFace` class creates a simple app interface with a sidebar navigation rail and content area
@@ -21,6 +22,12 @@ class AppFace:
         self.page = page
         self.page.title = "KPI Reporting v.01"
         self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+
+        # Add the filepicker to the page
+        self.file_picker = ft.FilePicker(on_result=self.on_file_selected)
+        self.page.overlay.append(self.file_picker)
+
+        self.file_output = ft.Text(value="No File Selected")
 
         # Initialize sidebar and content area
         self.sidebar = self.create_sidebar()
@@ -112,6 +119,49 @@ class AppFace:
             expand=True,
         )
 
+    def create_file_picker(self, e=None):
+        self.file_picker.pick_files(allowed_extensions=["csv", "xlsx"])
+
+    def on_file_selected(self, e):
+        if e.files:
+            file_path = e.files[0].path
+            self.file_output.value = f"Selected file: {file_path}"
+            self.page.update()
+
+            if file_path.endswith(".csv"):
+                df = pd.read_csv(file_path)
+            elif file_path.endswith(".xlsx"):
+                df = pd.read_excel(file_path)
+            else:
+                self.file_output.value = "Unsupported file type"
+                self.page.update()
+                return
+
+            # Pass the DataFrame to the external function
+            self.process_data_frame(df)
+
+    def process_data_frame(self, df):
+        print("Appending in")
+        container = file_ops.FilePrep()._append_to_df(df)
+        print("Appending done. wait for the confirmation message")
+        
+        self.show_confimation(
+            "Upload Successful",
+            "Chosen file have been successfully uploaded to the base file",
+        )
+
+    def show_confimation(self, title, message):
+        return ft.AlertDialog(
+            modal=True,
+            title=ft.Text(title),
+            content=ft.Text(message),
+            actions=[ft.TextButton("Ok", on_click=self.handle_close)],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
+    def handle_close(self, e):
+        self.page.close(e.control.text)
+
     def show_home(self, e):
         self.content.controls = [ft.Text("Welcome to the KPI Reporting App")]
         self.page.update()
@@ -134,6 +184,27 @@ class AppFace:
                 padding=10,
                 alignment=ft.alignment.center,
                 bgcolor=ft.colors.GREEN,
+                width=200,
+                height=150,
+                border_radius=10,
+            ),
+            ft.Text("This section is destined for uploading new file to the database"),
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text("Upload File Section"),
+                        ft.FilledButton(
+                            text="Upload new file",
+                            icon=ft.icons.UPLOAD_FILE,
+                            tooltip="Choose a file to upload to the Database",
+                            on_click=self.create_file_picker,
+                        ),
+                    ]
+                ),
+                margin=10,
+                padding=10,
+                alignment=ft.alignment.center,
+                bgcolor=ft.colors.BLUE_500,
                 width=200,
                 height=150,
                 border_radius=10,
