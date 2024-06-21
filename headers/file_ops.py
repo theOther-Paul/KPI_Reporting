@@ -1,11 +1,9 @@
-import subprocess
 import pandas as pd
 import os
-import json
-import functools
 from logs import logger_class
 import flet as ft
 from openpyxl import load_workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
 
 """
 @package docstring
@@ -73,20 +71,39 @@ class FilePrep:
         new_df = pd.concat([base_df, file_to_upload], ignore_index=True)
         return self.__append_to_excel(new_df)
 
-    def __append_to_excel(self, df_to_append):
-        try:
-            with pd.ExcelWriter(self.file_name, engine="openpyxl", mode="a") as writer:
-                writer.book = load_workbook(self.file_name)
-                writer.sheets = {ws.title: ws for ws in writer.book.worksheets}
+    def __append_to_excel(self, df_to_append: pd.DataFrame):
+        if os.path.isfile(self.file_name):
+            workbook = load_workbook(self.file_name)
+            sheet = workbook["data"]
 
-                start_row = writer.sheets["Sheet1"].max_row + 1
+            for row in dataframe_to_rows(df_to_append, header=False, index=False):
+                sheet.append(row)
 
-                df_to_append.to_excel(
-                    writer,
-                    index=False,
-                    header=False,
-                    sheet_name="Sheet1",
-                    startrow=start_row,
-                )
-        except Exception as e:
-            print(f"Error appending to Excel: {e}")
+            workbook.save(self.file_name)
+            workbook.close()
+
+    def __undo_upload(self):
+        print("undo method to be developed")
+        pass
+
+    def __clear_df(self):
+        """This function clears the contents of the support file (dataframe) and logs it in the logger
+        How to call: due to name mangling, and the fact that this is a private method, it will need to be
+        called like the following example:
+
+        Example:
+        ```
+        class Foo:
+            def __private_method(*args):
+                #does things
+                return *args
+
+        Foo()._Foo__private_method(*args)
+        ```
+        """
+        with open(self.file_name, "w") as file:
+            pass
+        print("Data cleared on behalf of admin")
+        self.grab_log.form_log(
+            "Data Cleared on behalf of app admin", self.grab_logs.get_level("warn")
+        )
