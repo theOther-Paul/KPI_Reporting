@@ -1,7 +1,9 @@
 import flet as ft
 from logs.logger_class import GrabLogs
-from headers import file_ops
+from headers import file_ops, visuals
 import pandas as pd
+from flet.plotly_chart import PlotlyChart
+import plotly.express as px
 
 
 # The `AppFace` class creates a simple app interface with a sidebar navigation rail and content area
@@ -144,13 +146,16 @@ class AppFace:
         print("Appending in")
         container = file_ops.FilePrep()._append_to_df(df)
         print("Appending done. wait for the confirmation message")
-        
+
         self.show_confimation(
             "Upload Successful",
             "Chosen file have been successfully uploaded to the base file",
         )
 
     def show_confimation(self, title, message):
+
+        # TODO: fix the messagebox not displaying at all when the program is ran
+
         return ft.AlertDialog(
             modal=True,
             title=ft.Text(title),
@@ -163,7 +168,88 @@ class AppFace:
         self.page.close(e.control.text)
 
     def show_home(self, e):
-        self.content.controls = [ft.Text("Welcome to the KPI Reporting App")]
+        self.content.controls = [
+            ft.Text("Welcome to the KPI Reporting App"),
+            ft.Container(
+                content=ft.Row(
+                    [
+                        ft.Container(
+                            content=ft.Column(
+                                [
+                                    ft.Text("Combobox section"),
+                                    ft.Dropdown(
+                                        width=100,
+                                        options=[
+                                            ft.dropdown.Option("Red"),
+                                            ft.dropdown.Option("Red1"),
+                                            ft.dropdown.Option("Red2"),
+                                        ],
+                                    ),
+                                ]
+                            ),
+                            margin=10,
+                            padding=10,
+                            alignment=ft.alignment.center,
+                            bgcolor=ft.colors.GREEN_200,
+                            width=150,
+                            height=150,
+                            border_radius=10,
+                        ),
+                        ft.Text(),
+                        ft.DataTable(
+                            width=700,
+                            bgcolor="green",
+                            border=ft.border.all(2, "red"),
+                            border_radius=10,
+                            vertical_lines=ft.BorderSide(3, "blue"),
+                            horizontal_lines=ft.BorderSide(1, "green"),
+                            sort_column_index=0,
+                            sort_ascending=True,
+                            heading_row_color=ft.colors.BLACK12,
+                            heading_row_height=100,
+                            data_row_color={"hovered": "0x30FF0000"},
+                            show_checkbox_column=True,
+                            divider_thickness=0,
+                            column_spacing=200,
+                            columns=[
+                                ft.DataColumn(ft.Text("First name")),
+                                ft.DataColumn(ft.Text("Last name")),
+                                ft.DataColumn(ft.Text("Age"), numeric=True),
+                            ],
+                            rows=[
+                                ft.DataRow(
+                                    cells=[
+                                        ft.DataCell(ft.Text("John")),
+                                        ft.DataCell(ft.Text("Smith")),
+                                        ft.DataCell(ft.Text("43")),
+                                    ],
+                                ),
+                                ft.DataRow(
+                                    cells=[
+                                        ft.DataCell(ft.Text("Jack")),
+                                        ft.DataCell(ft.Text("Brown")),
+                                        ft.DataCell(ft.Text("19")),
+                                    ],
+                                ),
+                                ft.DataRow(
+                                    cells=[
+                                        ft.DataCell(ft.Text("Alice")),
+                                        ft.DataCell(ft.Text("Wong")),
+                                        ft.DataCell(ft.Text("25")),
+                                    ],
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                margin=9,
+                padding=9,
+                alignment=ft.alignment.center_left,
+                bgcolor=ft.colors.AMBER_400,
+                height=300,
+                border_radius=10,
+            ),
+        ]
         self.page.update()
 
     def show_report_downloader(self, e):
@@ -197,7 +283,8 @@ class AppFace:
                             text="Upload new file",
                             icon=ft.icons.UPLOAD_FILE,
                             tooltip="Choose a file to upload to the Database",
-                            on_click=self.create_file_picker,
+                            # on_click=self.create_file_picker,
+                            on_click=self.show_confimation,
                         ),
                     ]
                 ),
@@ -214,7 +301,12 @@ class AppFace:
         self.page.update()
 
     def show_plot(self, e):
-        self.content.controls = [ft.Text("Plot Section under construction")]
+        # TODO: need to fix the demo line chart and replace the data with real data from the table
+
+        self.content.controls = [
+            ft.Column([ft.Text("Plotting Section"), visuals.State().chart])
+        ]
+
         self.page.update()
 
     def show_settings(self, e):
