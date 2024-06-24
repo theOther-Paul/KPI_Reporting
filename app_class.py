@@ -2,8 +2,7 @@ import flet as ft
 from logs.logger_class import GrabLogs
 from headers import file_ops, visuals
 import pandas as pd
-from flet.plotly_chart import PlotlyChart
-import plotly.express as px
+from flet.matplotlib_chart import MatplotlibChart
 
 
 # The `AppFace` class creates a simple app interface with a sidebar navigation rail and content area
@@ -153,19 +152,42 @@ class AppFace:
         )
 
     def show_confimation(self, title, message):
-
-        # TODO: fix the messagebox not displaying at all when the program is ran
-
-        return ft.AlertDialog(
-            modal=True,
+        dialog = ft.AlertDialog(
             title=ft.Text(title),
             content=ft.Text(message),
-            actions=[ft.TextButton("Ok", on_click=self.handle_close)],
             actions_alignment=ft.MainAxisAlignment.END,
+            on_dismiss=lambda e: None,
+        )
+        self.page.dialog = dialog
+        dialog.open = True
+        self.page.update()
+
+    def show_confirmation_modal(self, title, message):
+        def confirm(e):
+            dialog.open = False
+            self.page.update()
+            print("Modal dialog closed (user selected 'Yes')")
+
+        def cancel(e):
+            dialog.open = False
+            self.page.update()
+            print("Modal dialog closed (user selected 'Cancel')")
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Please confirm"),
+            content=ft.Text("Are you sure you want to delete this file?"),
+            actions=[
+                ft.TextButton("Yes", on_click=confirm),
+                ft.TextButton("Cancel", on_click=cancel),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+            on_dismiss=lambda e: print("Modal dialog dismissed!"),
         )
 
-    def handle_close(self, e):
-        self.page.close(e.control.text)
+        self.page.dialog = dialog
+        dialog.open = True
+        self.page.update()
 
     def show_home(self, e):
         self.content.controls = [
@@ -284,7 +306,10 @@ class AppFace:
                             icon=ft.icons.UPLOAD_FILE,
                             tooltip="Choose a file to upload to the Database",
                             # on_click=self.create_file_picker,
-                            on_click=self.show_confimation,
+                            on_click=lambda _: self.show_confimation(
+                                "Upload Successful",
+                                "The file has been successfully uploaded intop the central file. \nPress anywhere to dismiss this prompt",
+                            ),
                         ),
                     ]
                 ),
@@ -301,10 +326,23 @@ class AppFace:
         self.page.update()
 
     def show_plot(self, e):
-        # TODO: need to fix the demo line chart and replace the data with real data from the table
 
         self.content.controls = [
-            ft.Column([ft.Text("Plotting Section"), visuals.State().chart])
+            ft.Column(
+                [
+                    ft.Text("Plotting Section example"),
+                    ft.Container(
+                        content=visuals.show_fruits(),
+                        margin=10,
+                        padding=10,
+                        alignment=ft.alignment.center,
+                        bgcolor=ft.colors.BLUE_300,
+                        width=500,
+                        height=500,
+                        border_radius=10,
+                    ),
+                ]
+            )
         ]
 
         self.page.update()
