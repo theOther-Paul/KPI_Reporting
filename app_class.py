@@ -1,6 +1,6 @@
 import flet as ft
 from logs.logger_class import GrabLogs
-from headers import file_ops, visuals
+from headers import file_ops, visuals, consolidate
 import pandas as pd
 from flet.matplotlib_chart import MatplotlibChart
 
@@ -34,6 +34,8 @@ class AppFace:
         self.sidebar = self.create_sidebar()
         self.content = ft.Column(controls=[ft.Text("Welcome to the app!")], expand=True)
 
+        # Initialize combobox values and helpers
+        self.raw_drop = consolidate.GatherData().form_combo()
         # Layout with sidebar and main content
         self.page.add(
             ft.Row(
@@ -190,6 +192,28 @@ class AppFace:
         self.page.update()
 
     def show_home(self, e):
+        def drop_changed(e):
+            """
+            The function `drop_changed` updates the value of an empty text label based on the selected
+            value of a dropdown menu and then updates the page.
+
+            :param e: It seems like the `drop_changed` function is designed to update the
+            `empty_text_label` value based on the selected value of a dropdown widget. The `e` parameter
+            in this context  refers to the event object that triggered the change in the dropdown
+            value. This event object could contain information about
+            """
+            empty_text_label.value = {dropdown.value}
+            self.page.update()
+
+        # TODO: Fix this not appearing on the app
+        dropdown = (
+            ft.Dropdown(
+                width=200,
+                options=[ft.dropdown.Option(value) for value in self.raw_drop],
+                on_click=drop_changed,
+            ),
+        )
+        empty_text_label = ft.Text()
         self.content.controls = [
             ft.Text("Welcome to the KPI Reporting App"),
             ft.Container(
@@ -199,21 +223,14 @@ class AppFace:
                             content=ft.Column(
                                 [
                                     ft.Text("Combobox section"),
-                                    ft.Dropdown(
-                                        width=100,
-                                        options=[
-                                            ft.dropdown.Option("Red"),
-                                            ft.dropdown.Option("Red1"),
-                                            ft.dropdown.Option("Red2"),
-                                        ],
-                                    ),
+                                    dropdown,
                                 ]
                             ),
                             margin=10,
                             padding=10,
                             alignment=ft.alignment.center,
                             bgcolor=ft.colors.GREEN_200,
-                            width=150,
+                            width=250,
                             height=150,
                             border_radius=10,
                         ),
