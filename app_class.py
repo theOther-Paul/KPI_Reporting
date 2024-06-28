@@ -330,16 +330,30 @@ class AppFace:
         self.content.controls = [
             ft.Column(
                 [
-                    ft.Text("Plotting Section example"),
-                    ft.Container(
-                        content=visuals.show_fruits(),
-                        margin=10,
-                        padding=10,
-                        alignment=ft.alignment.center,
-                        bgcolor=ft.colors.BLUE_300,
-                        width=500,
-                        height=500,
-                        border_radius=10,
+                    ft.Text("Plotting Section examples"),
+                    ft.Row(
+                        [
+                            ft.Container(
+                                content=visuals.show_fruits(),
+                                margin=10,
+                                padding=10,
+                                alignment=ft.alignment.center,
+                                bgcolor=ft.colors.BLUE_300,
+                                width=500,
+                                height=500,
+                                border_radius=10,
+                            ),
+                            ft.Container(
+                                content=visuals.show_line(),
+                                margin=10,
+                                padding=10,
+                                alignment=ft.alignment.center,
+                                bgcolor=ft.colors.BLUE_500,
+                                width=500,
+                                height=500,
+                                border_radius=10,
+                            ),
+                        ]
                     ),
                 ]
             )

@@ -20,6 +20,11 @@ class FilePrep:
         self.grab_logs = logger_class.GrabLogs()
 
     def open_raw_data(self):
+        """
+        This function returns an os process that opens the raw data file to the users for viewing.
+        :param: self.file_name
+        :return: os subprocess
+        """
         print(f"{self.file_name} will open shortly")
         path2file = os.getcwd() + "\\" + self.file_name
         return os.system(path2file)
@@ -67,11 +72,31 @@ class FilePrep:
         return content
 
     def _append_to_df(self, file_to_upload) -> pd.DataFrame:
+        """
+        The function appends a new DataFrame to an existing DataFrame and then appends the combined
+        DataFrame to an Excel file.
+        
+        :param file_to_upload: The `file_to_upload` parameter is expected to be a pandas DataFrame that you
+        want to append to an existing DataFrame. The function `_append_to_df` takes this DataFrame,
+        concatenates it with an existing DataFrame (`base_df`), and then appends the combined DataFrame to
+        an Excel file using the
+        :return: The method `_append_to_df` is returning the result of calling the private method
+        `__append_to_excel` with the new DataFrame `new_df` as an argument.
+        """
         base_df = self.update_df()
         new_df = pd.concat([base_df, file_to_upload], ignore_index=True)
         return self.__append_to_excel(new_df)
 
     def __append_to_excel(self, df_to_append: pd.DataFrame):
+        """
+        The function appends a pandas DataFrame to an existing Excel file.
+        
+        :param df_to_append: The `df_to_append` parameter is a pandas DataFrame that contains the data you
+        want to append to an existing Excel file. The function loads the existing Excel file, selects the
+        "data" sheet, appends the rows from the DataFrame to the sheet, and then saves and closes the
+        workbook
+        :type df_to_append: pd.DataFrame
+        """
         if os.path.isfile(self.file_name):
             workbook = load_workbook(self.file_name)
             sheet = workbook["data"]
