@@ -21,6 +21,8 @@ def get_total_employees_combo(df, cval):
 
 
 def get_percentage(total, margin):
+    if total == 0:
+        return float(0)
     return round((margin / total) * 100, 2)
 
 
