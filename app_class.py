@@ -2,7 +2,6 @@ import flet as ft
 from logs.logger_class import GrabLogs
 from headers import file_ops, visuals, consolidate
 import pandas as pd
-from flet.matplotlib_chart import MatplotlibChart
 
 
 # The `AppFace` class creates a simple app interface with a sidebar navigation rail and content area

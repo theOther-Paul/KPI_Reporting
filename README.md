@@ -9,18 +9,35 @@
 ## Objective
 To calculate and extract various KPI Reports from a data source. 
 
+### KPIs calculated
+- total number and percentage of women in a given period;
+- total number and percentage of women in a given seniority level;
+- total number and percentage of genders in a given seniority level;
+- percentage of ethnicities in a given area;
+
+## Usage
+to install requirements:
+```
+pip install -r requirements.txt
+```
 To run the app:
 
 ```
-flet run [app_directory]
+flet run [app_file]
 ```
 
 ## Structure
 An interface similar with Trello, that contains a sidebar used for navigation, with x number of options, speciffic for the task at hand: the
-1. TBD
+1. Show Home
 2. TBD
 3. TBD
 4. TBD
+
+### Show Home
+Shows the front page of the app, containing an overview  of all kpis calculated, based on departament
+Objects: 
+- a departament dropdown: for choosing the departament which data we want to visualize
+- the table containing data related to the departament chosen
 
 ## Presentation
 
