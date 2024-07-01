@@ -8,3 +8,6 @@ class GatherData:
 
     def form_combo(self):
         return self.df["department"].unique()
+
+    def get_combo_table(self, cval):
+        pass

@@ -34,8 +34,17 @@ class AppFace:
         self.sidebar = self.create_sidebar()
         self.content = ft.Column(controls=[ft.Text("Welcome to the app!")], expand=True)
 
-        # Initialize combobox values and helpers
+        # combobox and dropdowns
         self.raw_drop = consolidate.GatherData().form_combo()
+
+        self.dropdown_var = None
+
+        self.dropdown = ft.Dropdown(
+            width=200,
+            options=[ft.dropdown.Option(value) for value in self.raw_drop],
+            on_change=self.drop_changed,
+        )
+
         # Layout with sidebar and main content
         self.page.add(
             ft.Row(
@@ -47,6 +56,7 @@ class AppFace:
                 expand=True,
             )
         )
+        self.show_home()
 
     def create_sidebar(self):
         """
@@ -191,29 +201,27 @@ class AppFace:
         dialog.open = True
         self.page.update()
 
-    def show_home(self, e):
-        def drop_changed(e):
-            """
-            The function `drop_changed` updates the value of an empty text label based on the selected
-            value of a dropdown menu and then updates the page.
+    def drop_changed(self, e):
+        """
+        The function `drop_changed` updates the value of an empty text label based on the selected
+        value of a dropdown menu and then updates the page.
 
-            :param e: It seems like the `drop_changed` function is designed to update the
-            `empty_text_label` value based on the selected value of a dropdown widget. The `e` parameter
-            in this context  refers to the event object that triggered the change in the dropdown
-            value. This event object could contain information about
-            """
-            empty_text_label.value = {dropdown.value}
-            self.page.update()
+        :param e: It seems like the `drop_changed` function is designed to update the
+        `empty_text_label` value based on the selected value of a dropdown widget. The `e` parameter
+        in this context refers to the event object that triggered the change in the dropdown
+        value. This event object could contain information about the selected value.
+        """
+        self.dropdown_var = e.control.value
+        empty_text_label.value = f"Selected Value: {self.dropdown_value}"  # type: ignore
+        self.page.update()
 
-        # TODO: Fix this not appearing on the app
-        dropdown = (
-            ft.Dropdown(
-                width=200,
-                options=[ft.dropdown.Option(value) for value in self.raw_drop],
-                on_click=drop_changed,
-            ),
-        )
-        empty_text_label = ft.Text()
+    def show_home(self):
+        """
+        The function sets up the home page content with a dropdown menu, a text label, and a data table,
+        and updates the page with the new content.
+        """
+        self.empty_text_label = ft.Text()
+
         self.content.controls = [
             ft.Text("Welcome to the KPI Reporting App"),
             ft.Container(
@@ -223,18 +231,18 @@ class AppFace:
                             content=ft.Column(
                                 [
                                     ft.Text("Combobox section"),
-                                    dropdown,
+                                    self.dropdown,
+                                    self.empty_text_label,
                                 ]
                             ),
                             margin=10,
                             padding=10,
                             alignment=ft.alignment.center,
                             bgcolor=ft.colors.GREEN_200,
-                            width=250,
+                            width=350,
                             height=150,
                             border_radius=10,
                         ),
-                        ft.Text(),
                         ft.DataTable(
                             width=700,
                             bgcolor="green",
