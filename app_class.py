@@ -1,6 +1,6 @@
 import flet as ft
 from logs.logger_class import GrabLogs
-from headers import file_ops, visuals, consolidate
+from headers import file_ops, visuals, consolidate, kpi
 import pandas as pd
 
 
@@ -39,6 +39,7 @@ class AppFace:
         self.dropdown_var = None
 
         self.dropdown = ft.Dropdown(
+            hint_text="Choose a department",
             width=200,
             options=[ft.dropdown.Option(value) for value in self.raw_drop],
             on_change=self.drop_changed,
@@ -201,18 +202,20 @@ class AppFace:
         self.page.update()
 
     def drop_changed(self, e):
+        # todo: fix dropdown not working and table not updating
         """
-        The function `drop_changed` updates the value of an empty text label based on the selected
-        value of a dropdown menu and then updates the page.
+        Update the selected dropdown value, update an empty text label, and trigger DataTable update.
 
-        :param e: It seems like the `drop_changed` function is designed to update the
-        `empty_text_label` value based on the selected value of a dropdown widget. The `e` parameter
-        in this context refers to the event object that triggered the change in the dropdown
-        value. This event object could contain information about the selected value.
+        Parameters:
+        - e: Event object containing information about the dropdown selection change.
         """
-        self.dropdown_var = e.control.value
-        empty_text_label.value = f"Selected Value: {self.dropdown_value}"  # type: ignore
-        self.page.update()
+        self.dropdown_var = e.value  # Update the selected dropdown value
+        self.empty_text_label.value = (
+            f"Selected Value: {self.dropdown_var}"  # Update the text label
+        )
+
+        # Trigger page update to reflect changes in UI
+        self.show_home()
 
     def show_home(self):
         """
@@ -220,6 +223,19 @@ class AppFace:
         and updates the page with the new content.
         """
         self.empty_text_label = ft.Text()
+
+        df = file_ops.FilePrep().split_by_snap()[1]
+        df_filtered = df[
+            df["department"] == self.dropdown_var
+        ]  # Filter data based on dropdown selection
+
+        df_to_convert = kpi.EmployeeAnalytics(
+            df_filtered, self.empty_text_label
+        ).form_df()
+
+        gender_table_columns, gender_table_rows = consolidate.create_flet_table(
+            df_to_convert
+        )
 
         self.content.controls = [
             ft.Text("Welcome to the KPI Reporting App"),
@@ -243,48 +259,17 @@ class AppFace:
                             border_radius=10,
                         ),
                         ft.DataTable(
-                            width=700,
                             bgcolor="green",
-                            border=ft.border.all(2, "red"),
-                            border_radius=10,
-                            vertical_lines=ft.BorderSide(3, "blue"),
-                            horizontal_lines=ft.BorderSide(1, "green"),
-                            sort_column_index=0,
-                            sort_ascending=True,
+                            horizontal_lines=ft.BorderSide(1, "blue"),
                             heading_row_color=ft.colors.BLACK12,
-                            heading_row_height=100,
+                            heading_row_height=25,
                             data_row_color={"hovered": "0x30FF0000"},
-                            show_checkbox_column=True,
-                            divider_thickness=0,
-                            column_spacing=200,
+                            column_spacing=25,
                             columns=[
-                                ft.DataColumn(ft.Text("First name")),
-                                ft.DataColumn(ft.Text("Last name")),
-                                ft.DataColumn(ft.Text("Age"), numeric=True),
+                                ft.DataColumn(ft.Text(column))
+                                for column in gender_table_columns
                             ],
-                            rows=[
-                                ft.DataRow(
-                                    cells=[
-                                        ft.DataCell(ft.Text("John")),
-                                        ft.DataCell(ft.Text("Smith")),
-                                        ft.DataCell(ft.Text("43")),
-                                    ],
-                                ),
-                                ft.DataRow(
-                                    cells=[
-                                        ft.DataCell(ft.Text("Jack")),
-                                        ft.DataCell(ft.Text("Brown")),
-                                        ft.DataCell(ft.Text("19")),
-                                    ],
-                                ),
-                                ft.DataRow(
-                                    cells=[
-                                        ft.DataCell(ft.Text("Alice")),
-                                        ft.DataCell(ft.Text("Wong")),
-                                        ft.DataCell(ft.Text("25")),
-                                    ],
-                                ),
-                            ],
+                            rows=gender_table_rows,
                         ),
                     ],
                 ),
@@ -296,6 +281,7 @@ class AppFace:
                 border_radius=10,
             ),
         ]
+
         self.page.update()
 
     def show_report_downloader(self, e):
