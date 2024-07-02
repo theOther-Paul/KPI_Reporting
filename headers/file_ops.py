@@ -6,6 +6,7 @@ from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 import json
 from datetime import date, datetime
+import functools
 
 """
 @package docstring
@@ -135,6 +136,62 @@ class FilePrep:
             "Data Cleared on behalf of app admin", self.grab_logs.get_level("warn")
         )
 
+    def __snap_list(self):
+        """
+        The function `__snap_list` retrieves unique snapshot dates from a DataFrame.
+        :return: The `snap_list` variable is being returned, which is a list of unique values from the
+        "snapshot_date" column in the `base_file` DataFrame.
+        """
+        base_file = self.update_df()
+        try:
+            snap_list = list(base_file["snapshot_date"].unique())
+        except Exception:
+            snap_list = list(base_file["snapshot_date"].unique())
+        return snap_list
+
+    def map_quarters(self):
+        """
+        This function maps the current quarter and the previous quarter based on a list of months and years.
+        :return: The code is returning the actual quarter and the previous quarter based on the input data.
+        """
+        snap = last_quarters(self.__snap_list())
+        month = []
+        year = []
+        for val in snap:
+            month.append(val[:3])
+            year.append(val[-2:])
+        q_list = get_quarter_month_list()
+        res = []
+        key_list = []
+        for key, values in q_list.items():
+            if key not in ["Q1 20", "Q2 20", "Q3 20", "Q4 20"]:
+                break
+            res.extend(n[:3] for n in values)
+        for key, values in q_list.items():
+            if key[3:] in year[0] or key[3:] == year[0]:
+                for vv in values:
+                    for valm in month:
+                        if valm in vv or valm == vv:
+                            key_list.extend(
+                                key for l_res in res if l_res in valm or l_res == valm
+                            )
+                # if key_list[0] == key_list[1]:
+                #     raise Exception("Same Quarter")
+                # else:
+        return key_list[1], key_list[0]  # actual quarter and previous quarter
+
+    def map_q(self):
+        """
+        The `map_q` function returns a list of quarters based on the previous quarters in a snapshot list.
+        :return: The `map_q` method returns a list of quarter values corresponding to the previous quarters
+        of the snapshots obtained from the `last_quarters` function.
+
+        0- previous quarter. 1- actual quarter
+        """
+        snap = last_quarters(self.__snap_list())
+        return [get_quarter_for_snap(x) for x in snap]
+
+    @functools.lru_cache(maxsize=None)
     def split_by_snap(self) -> tuple:
         """
         Splits the data into two DataFrames based on the most recent and previous quarters.
@@ -155,24 +212,37 @@ class FilePrep:
         )
 
 
-# todo: Testing of all the below functions
 def repl_date():
     """
     The function `repl_date()` returns the current month and year in a specific format.
     :return: The function `repl_date()` returns a string representing the current month and year in the
     format "Month Year".
+
+    Currently unused
     """
     tod = date.today()
     return tod.strftime("%B %y")
 
 
-def get_quarter_month_list(q_map="mapping/quarters.json"):
+def get_quarter_month_list(q_map="headers/mapping/quarters.json"):
+    """
+    The function `get_quarter_month_list` reads a JSON file containing quarter-month mappings and
+    returns the content as a nested dictionary.
+    
+    :param q_map: The `q_map` parameter is the file path to a JSON file that contains a mapping of
+    quarters to months for different years. The function `get_quarter_month_list` reads this JSON file
+    and returns the content as a dictionary where each year is mapped to its quarters, and each quarter
+    is mapped, defaults to headers/mapping/quarters.json (optional)
+    :return: A dictionary containing the mapping of quarters to months for each year, as read from the
+    specified JSON file.
+    """
     json_content = {}
-    with open(q_map, "r") as q_map:
-        content = json.loads(q_map.read())
-        for iterator in content:
-            for i in content[iterator]:
-                json_content.update(i)
+    with open(q_map, "r") as q_map_file:
+        content = json.load(q_map_file)
+        for year, quarters in content.items():
+            json_content[year] = {}
+            for quarter, months in quarters.items():
+                json_content[year][quarter] = months
     return json_content
 
 
@@ -189,6 +259,10 @@ def last_quarters(quarter_list):
 
 
 def get_actual_q():
+    """
+    This Python function retrieves the current quarter based on the current year and month.
+    :return: The code is returning the current quarter based on the current year and month.
+    """
     c_year = datetime.now().year
     date = datetime.now()
     c_month = date.strftime("%b")
@@ -201,6 +275,14 @@ def get_actual_q():
 
 
 def get_quarter_for_snap(month_snap):
+    """
+    The function `get_quarter_for_snap` determines the quarter of the year based on a given month
+    abbreviation.
+    
+    :param month_snap: The function `get_quarter_for_snap` takes a parameter `month_snap`, which is a
+    string representing a month in the format "MMM-YY" (e.g., "Jan-22")
+    :return: the quarter corresponding to the given month_snap.
+    """
     q_list = get_quarter_month_list()
     for key, val in q_list.items():
         if key[3:] in str(month_snap[-2:]):
@@ -210,6 +292,17 @@ def get_quarter_for_snap(month_snap):
 
 
 def add_quarter_for_snap2list(list_of_lists):
+    """
+    The function `add_quarter_for_snap2list` iterates through a list of lists and updates the second
+    element of each inner list with the quarter value obtained from a function `get_quarter_for_snap`.
+    
+    :param list_of_lists: It seems like the code snippet you provided is incomplete. Could you please
+    provide me with the contents of the `list_of_lists` variable so that I can assist you further with
+    the `add_quarter_for_snap2list` function?
+    :return: The function `add_quarter_for_snap2list` is returning the `list_of_lists` after modifying
+    the second element of each sublist to contain the quarter obtained from the `get_quarter_for_snap`
+    function.
+    """
     for val in list_of_lists:
         for j, jval in enumerate(val):
             if j == 1:
@@ -218,6 +311,18 @@ def add_quarter_for_snap2list(list_of_lists):
 
 
 def get_snap_list(choosen_df: pd.DataFrame, snap_column: str) -> list:
+    """
+    This function returns a list of unique values from a specified column in a pandas DataFrame.
+    
+    :param choosen_df: The `choosen_df` parameter is a pandas DataFrame that contains the data from
+    which you want to extract unique values from a specific column
+    :type choosen_df: pd.DataFrame
+    :param snap_column: The `snap_column` parameter is the name of the column in the DataFrame
+    `choosen_df` from which you want to extract unique values to create a list
+    :type snap_column: str
+    :return: The function `get_snap_list` returns a list of unique values from the specified column
+    `snap_column` in the DataFrame `choosen_df`.
+    """
     return list(choosen_df[snap_column].unique())
 
 
