@@ -29,9 +29,17 @@ class GatherData:
 
 
 def create_flet_table(df):
+    """
+    The function `create_flet_table` takes a DataFrame as input and returns the columns and data rows
+    formatted for a Flet table.
+
+    :param df: The `df` parameter in the `create_flet_table` function is expected to be a pandas
+    DataFrame
+    :return: The function `create_flet_table` returns a tuple containing the columns of the input
+    DataFrame `df` and a list of data rows for each row in the DataFrame.
+    """
     data_rows = []
     for row in df.itertuples(index=False):
-        data_cells = [ft.DataCell(ft.Text(str(cell))) for cell in row]
-        data_rows.append(ft.DataRow(cells=data_cells))
-
-    return df.columns, data_rows
+        data_cells = [str(cell) for cell in row]
+        data_rows.append(data_cells)
+    return df.columns.tolist(), data_rows

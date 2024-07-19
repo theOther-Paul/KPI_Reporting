@@ -45,6 +45,10 @@ class AppFace:
             on_change=self.drop_changed,
         )
 
+        self.empty_text_label = ft.Text()
+
+        self.df = file_ops.FilePrep().split_by_snap()[1]
+
         # Layout with sidebar and main content
         self.page.add(
             ft.Row(
@@ -202,32 +206,28 @@ class AppFace:
         self.page.update()
 
     def drop_changed(self, e):
-        # todo: fix dropdown not working and table not updating
         """
-        Update the selected dropdown value, update an empty text label, and trigger DataTable update.
+        Update the selected dropdown value, update the empty text label, and trigger DataTable update.
 
         Parameters:
         - e: Event object containing information about the dropdown selection change.
         """
-        self.dropdown_var = e.value  # Update the selected dropdown value
+        self.dropdown_var = e.control.value  # Update the selected dropdown value
         self.empty_text_label.value = (
             f"Selected Value: {self.dropdown_var}"  # Update the text label
         )
 
-        # Trigger page update to reflect changes in UI
-        self.show_home()
+        self.update_table()
 
-    def show_home(self):
+    def update_table(self):
         """
-        The function sets up the home page content with a dropdown menu, a text label, and a data table,
-        and updates the page with the new content.
+        Filter data based on the dropdown selection and update the DataTable.
         """
-        self.empty_text_label = ft.Text()
-
-        df = file_ops.FilePrep().split_by_snap()[1]
-        df_filtered = df[
-            df["department"] == self.dropdown_var
-        ]  # Filter data based on dropdown selection
+        df_filtered = (
+            self.df[self.df["department"] == self.dropdown_var]
+            if self.dropdown_var
+            else self.df
+        )  # Filter data based on dropdown selection
 
         df_to_convert = kpi.EmployeeAnalytics(
             df_filtered, self.empty_text_label
@@ -284,56 +284,13 @@ class AppFace:
 
         self.page.update()
 
-    def show_report_downloader(self, e):
-        self.content.controls = [
-            ft.Text("This Section is used to check data and download reports"),
-            ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Text("Raw Data File Section"),
-                        ft.FilledButton(
-                            text="Open Raw Data",
-                            on_click=lambda e: file_ops.FilePrep().open_raw_data(),
-                            tooltip="Opens the raw data file",
-                        ),
-                    ],
-                ),
-                margin=10,
-                padding=10,
-                alignment=ft.alignment.center,
-                bgcolor=ft.colors.GREEN,
-                width=200,
-                height=150,
-                border_radius=10,
-            ),
-            ft.Text("This section is destined for uploading new file to the database"),
-            ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Text("Upload File Section"),
-                        ft.FilledButton(
-                            text="Upload new file",
-                            icon=ft.icons.UPLOAD_FILE,
-                            tooltip="Choose a file to upload to the Database",
-                            # on_click=self.create_file_picker,
-                            on_click=lambda _: self.show_confimation(
-                                "Upload Successful",
-                                "The file has been successfully uploaded intop the central file. \nPress anywhere to dismiss this prompt",
-                            ),
-                        ),
-                    ]
-                ),
-                margin=10,
-                padding=10,
-                alignment=ft.alignment.center,
-                bgcolor=ft.colors.BLUE_500,
-                width=200,
-                height=150,
-                border_radius=10,
-            ),
-        ]
-
-        self.page.update()
+    def show_home(self):
+        """
+        Set up the home page content with a dropdown menu, a text label, and a data table,
+        and update the page with the new content.
+        """
+        self.empty_text_label = ft.Text()
+        self.update_table()
 
     def show_plot(self, e):
 
@@ -412,4 +369,4 @@ class AppFace:
 
         action = actions.get(selected_index)
         if action:
-            action(e)
+            action()
