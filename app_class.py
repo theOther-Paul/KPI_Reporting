@@ -33,7 +33,7 @@ class AppFace:
         self.sidebar = self.create_sidebar()
         self.content = ft.Column(controls=[ft.Text("Welcome to the app!")], expand=True)
 
-        # combobox and dropdowns
+        # Home Page default elements
         self.raw_drop = consolidate.GatherData().form_combo()
 
         self.dropdown_var = None
@@ -46,8 +46,6 @@ class AppFace:
         )
 
         self.empty_text_label = ft.Text()
-
-        self.df = file_ops.FilePrep().split_by_snap()[1]
 
         # Layout with sidebar and main content
         self.page.add(
@@ -206,91 +204,92 @@ class AppFace:
         self.page.update()
 
     def drop_changed(self, e):
-        """
-        Update the selected dropdown value, update the empty text label, and trigger DataTable update.
-
-        Parameters:
-        - e: Event object containing information about the dropdown selection change.
-        """
-        self.dropdown_var = e.control.value  # Update the selected dropdown value
-        self.empty_text_label.value = (
-            f"Selected Value: {self.dropdown_var}"  # Update the text label
-        )
-
+        self.dropdown_var = e.control.value
+        self.empty_text_label.value = f"Selected Value: {self.dropdown_var}"
         self.update_table()
 
-    def update_table(self):
-        """
-        Filter data based on the dropdown selection and update the DataTable.
-        """
+    def update_table(self, initialize=False):
+        df = file_ops.FilePrep().split_by_snap()[1]
         df_filtered = (
-            self.df[self.df["department"] == self.dropdown_var]
-            if self.dropdown_var
-            else self.df
-        )  # Filter data based on dropdown selection
+            df[df["department"] == self.dropdown_var] if self.dropdown_var else df
+        )
 
         df_to_convert = kpi.EmployeeAnalytics(
             df_filtered, self.empty_text_label
         ).form_df()
-
-        gender_table_columns, gender_table_rows = consolidate.create_flet_table(
+        gender_table_columns, gender_table_data = consolidate.create_flet_table(
             df_to_convert
         )
 
-        self.content.controls = [
-            ft.Text("Welcome to the KPI Reporting App"),
-            ft.Container(
-                content=ft.Row(
-                    [
-                        ft.Container(
-                            content=ft.Column(
-                                [
-                                    ft.Text("Combobox section"),
-                                    self.dropdown,
-                                    self.empty_text_label,
-                                ]
-                            ),
-                            margin=10,
-                            padding=10,
-                            alignment=ft.alignment.center,
-                            bgcolor=ft.colors.GREEN_200,
-                            width=350,
-                            height=150,
-                            border_radius=10,
-                        ),
-                        ft.DataTable(
-                            bgcolor="green",
-                            horizontal_lines=ft.BorderSide(1, "blue"),
-                            heading_row_color=ft.colors.BLACK12,
-                            heading_row_height=25,
-                            data_row_color={"hovered": "0x30FF0000"},
-                            column_spacing=25,
-                            columns=[
-                                ft.DataColumn(ft.Text(column))
-                                for column in gender_table_columns
-                            ],
-                            rows=gender_table_rows,
-                        ),
-                    ],
-                ),
-                margin=9,
-                padding=9,
-                alignment=ft.alignment.center_left,
-                bgcolor=ft.colors.AMBER_400,
-                height=300,
-                border_radius=10,
-            ),
+        gender_table_rows = [
+            ft.DataRow(cells=[ft.DataCell(ft.Text(str(cell))) for cell in row])
+            for row in gender_table_data
         ]
+
+        updated_table = ft.DataTable(
+            bgcolor="green",
+            horizontal_lines=ft.BorderSide(1, "blue"),
+            heading_row_color=ft.colors.BLACK12,
+            heading_row_height=25,
+            data_row_color={"hovered": "0x30FF0000"},
+            column_spacing=25,
+            columns=[ft.DataColumn(ft.Text(column)) for column in gender_table_columns],
+            rows=gender_table_rows,
+        )
+
+        if initialize:
+            self.content.controls = [
+                ft.Text("Welcome to the KPI Reporting App"),
+                ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.Text("Combobox section"),
+                            self.dropdown,
+                            self.empty_text_label,
+                        ]
+                    ),
+                    margin=10,
+                    padding=10,
+                    alignment=ft.alignment.center,
+                    bgcolor=ft.colors.GREEN_200,
+                    width=350,
+                    height=150,
+                    border_radius=10,
+                ),
+                ft.Container(
+                    content=updated_table,
+                    margin=9,
+                    padding=9,
+                    alignment=ft.alignment.center_left,
+                    bgcolor=ft.colors.AMBER_400,
+                    height=300,
+                    border_radius=10,
+                ),
+            ]
+        else:
+            # Update the existing DataTable control within content
+            for index, control in enumerate(self.content.controls):
+                if isinstance(control, ft.Container) and isinstance(
+                    control.content, ft.DataTable
+                ):
+                    self.content.controls[index] = ft.Container(
+                        content=updated_table,
+                        margin=9,
+                        padding=9,
+                        alignment=ft.alignment.center_left,
+                        bgcolor=ft.colors.AMBER_400,
+                        height=300,
+                        border_radius=10,
+                    )
+                    break
 
         self.page.update()
 
     def show_home(self):
-        """
-        Set up the home page content with a dropdown menu, a text label, and a data table,
-        and update the page with the new content.
-        """
+
         self.empty_text_label = ft.Text()
-        self.update_table()
+        self.update_table(initialize=True)
+        self.page.update()
 
     def show_plot(self, e):
 

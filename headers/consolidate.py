@@ -42,4 +42,4 @@ def create_flet_table(df):
     for row in df.itertuples(index=False):
         data_cells = [str(cell) for cell in row]
         data_rows.append(data_cells)
-    return df.columns.tolist(), data_rows
+    return df.columns, data_rows
