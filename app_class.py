@@ -203,13 +203,66 @@ class AppFace:
         dialog.open = True
         self.page.update()
 
+    def show_report_downloader(self, e):
+        self.content.controls = [
+            ft.Text("This Section is used to check data and download reports"),
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text("Raw Data File Section"),
+                        ft.FilledButton(
+                            text="Open Raw Data",
+                            on_click=lambda e: file_ops.FilePrep().open_raw_data(),
+                            tooltip="Opens the raw data file",
+                        ),
+                    ],
+                ),
+                margin=10,
+                padding=10,
+                alignment=ft.alignment.center,
+                bgcolor=ft.colors.GREEN,
+                width=200,
+                height=150,
+                border_radius=10,
+            ),
+            ft.Text("This section is destined for uploading new file to the database"),
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text("Upload File Section"),
+                        ft.FilledButton(
+                            text="Upload new file",
+                            icon=ft.icons.UPLOAD_FILE,
+                            tooltip="Choose a file to upload to the Database",
+                            # on_click=self.create_file_picker,
+                            on_click=lambda _: self.show_confimation(
+                                "Upload Successful",
+                                "The file has been successfully uploaded intop the central file. \nPress anywhere to dismiss this prompt",
+                            ),
+                        ),
+                    ]
+                ),
+                margin=10,
+                padding=10,
+                alignment=ft.alignment.center,
+                bgcolor=ft.colors.BLUE_500,
+                width=200,
+                height=150,
+                border_radius=10,
+            ),
+        ]
+
+        self.page.update()
+
     def drop_changed(self, e):
         self.dropdown_var = e.control.value
         self.empty_text_label.value = f"Selected Value: {self.dropdown_var}"
-        self.update_table()
+        self.show_home()
 
-    def update_table(self, initialize=False):
+    def update_table(self):
+
         df = file_ops.FilePrep().split_by_snap()[1]
+
         df_filtered = (
             df[df["department"] == self.dropdown_var] if self.dropdown_var else df
         )
@@ -233,62 +286,113 @@ class AppFace:
             heading_row_height=25,
             data_row_color={"hovered": "0x30FF0000"},
             column_spacing=25,
-            columns=[ft.DataColumn(ft.Text(column)) for column in gender_table_columns],
-            rows=gender_table_rows,
+            columns=[
+                ft.DataColumn(ft.Text(column)) for column in self.gender_table_columns
+            ],
+            rows=self.gender_table_rows,
         )
-
-        if initialize:
-            self.content.controls = [
-                ft.Text("Welcome to the KPI Reporting App"),
-                ft.Container(
-                    content=ft.Column(
-                        [
-                            ft.Text("Combobox section"),
-                            self.dropdown,
-                            self.empty_text_label,
-                        ]
-                    ),
-                    margin=10,
-                    padding=10,
-                    alignment=ft.alignment.center,
-                    bgcolor=ft.colors.GREEN_200,
-                    width=350,
-                    height=150,
-                    border_radius=10,
+        self.content.controls = [
+            ft.Text("Welcome to the KPI Reporting App"),
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text("Combobox section"),
+                        self.dropdown,
+                        self.empty_text_label,
+                        ft.FilledButton(
+                            text="Update Table", on_click=self.update_table
+                        ),
+                    ]
                 ),
-                ft.Container(
-                    content=updated_table,
-                    margin=9,
-                    padding=9,
-                    alignment=ft.alignment.center_left,
-                    bgcolor=ft.colors.AMBER_400,
-                    height=300,
-                    border_radius=10,
-                ),
-            ]
-        else:
-            # Update the existing DataTable control within content
-            for index, control in enumerate(self.content.controls):
-                if isinstance(control, ft.Container) and isinstance(
-                    control.content, ft.DataTable
-                ):
-                    self.content.controls[index] = ft.Container(
-                        content=updated_table,
-                        margin=9,
-                        padding=9,
-                        alignment=ft.alignment.center_left,
-                        bgcolor=ft.colors.AMBER_400,
-                        height=300,
-                        border_radius=10,
-                    )
-                    break
+                margin=10,
+                padding=10,
+                alignment=ft.alignment.center,
+                bgcolor=ft.colors.GREEN_200,
+                width=350,
+                height=150,
+                border_radius=10,
+            ),
+            ft.Container(
+                content=updated_table,
+                margin=9,
+                padding=9,
+                alignment=ft.alignment.center_left,
+                bgcolor=ft.colors.AMBER_400,
+                height=300,
+                border_radius=10,
+            ),
+        ]
 
         self.page.update()
 
     def show_home(self):
 
+        df = file_ops.FilePrep().split_by_snap()[1]
+        df_filtered = (
+            df[df["department"] == self.dropdown_var] if self.dropdown_var else df
+        )
+
+        df_to_convert = kpi.EmployeeAnalytics(
+            df_filtered, self.empty_text_label
+        ).form_df()
+        gender_table_columns, gender_table_data = consolidate.create_flet_table(
+            df_to_convert
+        )
+
+        self.gender_table_rows = [
+            ft.DataRow(cells=[ft.DataCell(ft.Text(str(cell))) for cell in row])
+            for row in gender_table_data
+        ]
+
         self.empty_text_label = ft.Text()
-        self.update_table(initialize=True)
+        self.content.controls = [
+            ft.Text("Welcome to the KPI Reporting App"),
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text("Combobox section"),
+                        self.dropdown,
+                        self.empty_text_label,
+                        ft.FilledButton(
+                            text="Update Table", on_click=self.update_table
+                        ),
+                    ]
+                ),
+                margin=10,
+                padding=10,
+                alignment=ft.alignment.center,
+                bgcolor=ft.colors.GREEN_200,
+                width=350,
+                height=250,
+                border_radius=10,
+            ),
+            ft.Container(
+                content=ft.Row(
+                    [
+                        ft.DataTable(
+                            bgcolor="green",
+                            horizontal_lines=ft.BorderSide(1, "blue"),
+                            heading_row_color=ft.colors.BLACK12,
+                            heading_row_height=25,
+                            data_row_color={"hovered": "0x30FF0000"},
+                            column_spacing=25,
+                            columns=[
+                                ft.DataColumn(ft.Text(column))
+                                for column in gender_table_columns
+                            ],
+                            rows=self.gender_table_rows,
+                        )
+                    ]
+                ),
+                margin=9,
+                padding=9,
+                alignment=ft.alignment.center_left,
+                bgcolor=ft.colors.AMBER_400,
+                height=300,
+                border_radius=10,
+            ),
+        ]
+
         self.page.update()
 
     def show_plot(self, e):

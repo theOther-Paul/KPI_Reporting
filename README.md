@@ -29,15 +29,24 @@ flet run [app_file]
 ## Structure
 An interface similar with Trello, that contains a sidebar used for navigation, with x number of options, speciffic for the task at hand: the
 1. Show Home
-2. TBD
-3. TBD
-4. TBD
+2. Reports
+3. Show Data
+4. Settings
 
 ### Show Home
 Shows the front page of the app, containing an overview  of all kpis calculated, based on departament
 Objects: 
 - a departament dropdown: for choosing the departament which data we want to visualize
 - the table containing data related to the departament chosen
+
+### Reports
+Shows a page from where the user can set the data and quarters for which they need a report
+
+### Show Data
+Shows a dashboard with relevant kpi tracking and tools to customize the needed data. 
+
+### Settings
+A settings page for admin user or for setting preferences for the app
 
 ## Presentation
 
