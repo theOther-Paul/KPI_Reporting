@@ -2,16 +2,24 @@ import flet as ft
 from logs.logger_class import GrabLogs
 from headers import file_ops, visuals, consolidate, kpi
 import pandas as pd
+import threading
 
 
 # The `AppFace` class creates a simple app interface with a sidebar navigation rail and content area
 class AppFace:
     logger = GrabLogs().configure_logger("main.log")
 
-    def __init__(self, page):
+    def __init__(self, page: ft.Page):
         self.page = page
         self.page.title = "KPI Reporting v.01"
         self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+
+        print(f"width: {self.page.width} \n height: {self.page.height}")
+
+        self.default_width = self.page.width
+        self.default_height = self.page.height
+
+        self.modified_width = 0
 
         # Add the file picker to the page
         self.file_picker = ft.FilePicker(on_result=self.on_file_selected)
@@ -47,7 +55,6 @@ class AppFace:
                 expand=True,
             )
         )
-
         # Show initial content
         self.show_home()
 
@@ -249,11 +256,13 @@ class AppFace:
         self.dropdown_var = e.control.value
         self.empty_text_label.value = f"Selected Value: {self.dropdown_var}"
 
-        self.update_table(self.dropdown_var)
+        self.content.controls[1].controls[1].content = self.update_table(
+            self.dropdown_var
+        )
 
         self.page.update()
 
-    def update_table(self, cval, e=None):
+    def update_table(self, cval):
         df = file_ops.FilePrep().split_by_snap()[1]
 
         df_to_convert = kpi.EmployeeAnalytics(df, cval).form_df()
@@ -267,38 +276,82 @@ class AppFace:
 
     def show_home(self):
         table1 = self.update_table(self.dropdown_var)
+        combo_cont = ft.Container(
+            content=ft.Column(
+                [
+                    ft.Text("Combobox section"),
+                    self.dropdown,
+                    self.empty_text_label,
+                ]
+            ),
+            margin=10,
+            padding=10,
+            alignment=ft.alignment.center,
+            bgcolor=ft.colors.BLUE_700,
+            width=350,
+            height=150,
+            border_radius=10,
+        )
+
+        table_cont = ft.Container(
+            content=ft.Row(
+                [
+                    table1,
+                ]
+            ),
+            bgcolor=ft.colors.GREEN_700,
+            margin=10,
+            alignment=ft.alignment.center,
+            border_radius=10,
+            width=800,
+        )
+
+        if self.default_width < self.modified_width:
+            self.page.width = self.modified_width
 
         self.content.controls = [
             ft.Text("Welcome to the KPI Reporting App"),
-            ft.Row(
-                [
-                    ft.Container(
-                        content=ft.Column(
-                            [
-                                ft.Text("Combobox section"),
-                                self.dropdown,
-                                self.empty_text_label,
-                            ]
-                        ),
-                        margin=10,
-                        padding=10,
-                        alignment=ft.alignment.center,
-                        bgcolor=ft.colors.GREEN_200,
-                        width=350,
-                        height=150,
-                        border_radius=10,
-                    ),
-                    ft.Container(
-                        content=ft.Row(
-                            [
-                                table1,
-                            ]
-                        ),
-                        bgcolor=ft.colors.GREEN_700,
-                    ),
-                ]
-            ),
+            ft.Row([combo_cont, table_cont]),
         ]
+
+        # Define a function to run after a short delay to access dimensions
+        def check_dimensions():
+            combo_cont_width = combo_cont.width or 0
+            print(f"combo_cont_width: {combo_cont_width}")  # Debug statement
+
+            combo_cont_margin = combo_cont.margin or 0
+            print(f"combo_cont_margin: {combo_cont_margin}")  # Debug statement
+
+            combo_cont_border = combo_cont.border_radius or 0
+            print(f"combo_cont_border: {combo_cont_border}")  # Debug statement
+
+            table_cont_width = table_cont.width or 0
+            print(f"table_cont_width: {table_cont_width}")  # Debug statement
+
+            table_cont_margin = table_cont.margin or 0
+            print(f"table_cont_margin: {table_cont_margin}")  # Debug statement
+
+            table_cont_border = table_cont.border_radius or 0
+            print(f"table_cont_border: {table_cont_border}")  # Debug statement
+
+            self.modified_width = (
+                combo_cont_width
+                + combo_cont_margin * 2
+                + combo_cont_border * 2
+                + table_cont_width
+                + table_cont_margin * 2
+                + table_cont_border * 2
+                + 151
+            )
+
+            print(f"Modified width after calc: {self.modified_width}")
+
+            # TODO: Fix this issue with the dimensions
+            if self.default_width < self.modified_width:
+                self.page.width = self.modified_width
+                self.page.update()
+
+        threading.Timer(0.3, check_dimensions).start()
         self.page.update()
 
     def show_plot(self, e):
