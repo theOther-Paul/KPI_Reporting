@@ -304,6 +304,7 @@ class AppFace:
             alignment=ft.alignment.center,
             border_radius=10,
             width=800,
+            padding=10,
         )
 
         if self.default_width < self.modified_width:
@@ -341,14 +342,14 @@ class AppFace:
                 + table_cont_width
                 + table_cont_margin * 2
                 + table_cont_border * 2
-                + 151
+                + 171
             )
 
             print(f"Modified width after calc: {self.modified_width}")
 
             # TODO: Fix this issue with the dimensions
             if self.default_width < self.modified_width:
-                self.page.width = self.modified_width
+                self.page.window_width = self.modified_width
                 self.page.update()
 
         threading.Timer(0.3, check_dimensions).start()
@@ -417,6 +418,6 @@ class AppFace:
         elif selected_index == 1:
             self.show_report_downloader(e)
         elif selected_index == 2:
-            self.show_plot()
+            self.show_plot(e)
         elif selected_index == 3:
-            self.show_settings()
+            self.show_settings(e)
