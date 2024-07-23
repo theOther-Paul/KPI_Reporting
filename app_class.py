@@ -9,21 +9,11 @@ class AppFace:
     logger = GrabLogs().configure_logger("main.log")
 
     def __init__(self, page):
-        """
-        The function initializes a page with a title, horizontal alignment, sidebar, and main content
-        area layout.
-
-        :param page: The `page` parameter in the `__init__` method is used to initialize a page object.
-        In this code snippet, the `page` object seems to be a part of a user interface framework
-        (possibly `ft` module) and is being customized with specific attributes like title and
-        horizontal alignment
-        """
-
         self.page = page
         self.page.title = "KPI Reporting v.01"
         self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
-        # Add the filepicker to the page
+        # Add the file picker to the page
         self.file_picker = ft.FilePicker(on_result=self.on_file_selected)
         self.page.overlay.append(self.file_picker)
 
@@ -31,11 +21,10 @@ class AppFace:
 
         # Initialize sidebar and content area
         self.sidebar = self.create_sidebar()
-        self.content = ft.Column(controls=[ft.Text("Welcome to the app!")], expand=True)
+        self.content = ft.Column(controls=[], expand=True)
 
-        # Home Page default elements
+        # ComboBox and dropdowns
         self.raw_drop = consolidate.GatherData().form_combo()
-
         self.dropdown_var = None
 
         self.dropdown = ft.Dropdown(
@@ -58,6 +47,8 @@ class AppFace:
                 expand=True,
             )
         )
+
+        # Show initial content
         self.show_home()
 
     def create_sidebar(self):
@@ -257,142 +248,57 @@ class AppFace:
     def drop_changed(self, e):
         self.dropdown_var = e.control.value
         self.empty_text_label.value = f"Selected Value: {self.dropdown_var}"
-        self.show_home()
 
-    def update_table(self):
-
-        df = file_ops.FilePrep().split_by_snap()[1]
-
-        df_filtered = (
-            df[df["department"] == self.dropdown_var] if self.dropdown_var else df
-        )
-
-        df_to_convert = kpi.EmployeeAnalytics(
-            df_filtered, self.empty_text_label
-        ).form_df()
-        gender_table_columns, gender_table_data = consolidate.create_flet_table(
-            df_to_convert
-        )
-
-        gender_table_rows = [
-            ft.DataRow(cells=[ft.DataCell(ft.Text(str(cell))) for cell in row])
-            for row in gender_table_data
-        ]
-
-        updated_table = ft.DataTable(
-            bgcolor="green",
-            horizontal_lines=ft.BorderSide(1, "blue"),
-            heading_row_color=ft.colors.BLACK12,
-            heading_row_height=25,
-            data_row_color={"hovered": "0x30FF0000"},
-            column_spacing=25,
-            columns=[
-                ft.DataColumn(ft.Text(column)) for column in self.gender_table_columns
-            ],
-            rows=self.gender_table_rows,
-        )
-        self.content.controls = [
-            ft.Text("Welcome to the KPI Reporting App"),
-            ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Text("Combobox section"),
-                        self.dropdown,
-                        self.empty_text_label,
-                        ft.FilledButton(
-                            text="Update Table", on_click=self.update_table
-                        ),
-                    ]
-                ),
-                margin=10,
-                padding=10,
-                alignment=ft.alignment.center,
-                bgcolor=ft.colors.GREEN_200,
-                width=350,
-                height=150,
-                border_radius=10,
-            ),
-            ft.Container(
-                content=updated_table,
-                margin=9,
-                padding=9,
-                alignment=ft.alignment.center_left,
-                bgcolor=ft.colors.AMBER_400,
-                height=300,
-                border_radius=10,
-            ),
-        ]
+        self.update_table(self.dropdown_var)
 
         self.page.update()
 
-    def show_home(self):
-
+    def update_table(self, cval, e=None):
         df = file_ops.FilePrep().split_by_snap()[1]
-        df_filtered = (
-            df[df["department"] == self.dropdown_var] if self.dropdown_var else df
+
+        df_to_convert = kpi.EmployeeAnalytics(df, cval).form_df()
+
+        datatable = ft.DataTable(
+            columns=consolidate.headers(df_to_convert),
+            rows=consolidate.rows(df_to_convert),
         )
 
-        df_to_convert = kpi.EmployeeAnalytics(
-            df_filtered, self.empty_text_label
-        ).form_df()
-        gender_table_columns, gender_table_data = consolidate.create_flet_table(
-            df_to_convert
-        )
+        return datatable
 
-        self.gender_table_rows = [
-            ft.DataRow(cells=[ft.DataCell(ft.Text(str(cell))) for cell in row])
-            for row in gender_table_data
-        ]
+    def show_home(self):
+        table1 = self.update_table(self.dropdown_var)
 
-        self.empty_text_label = ft.Text()
         self.content.controls = [
             ft.Text("Welcome to the KPI Reporting App"),
-            ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Text("Combobox section"),
-                        self.dropdown,
-                        self.empty_text_label,
-                        ft.FilledButton(
-                            text="Update Table", on_click=self.update_table
+            ft.Row(
+                [
+                    ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Text("Combobox section"),
+                                self.dropdown,
+                                self.empty_text_label,
+                            ]
                         ),
-                    ]
-                ),
-                margin=10,
-                padding=10,
-                alignment=ft.alignment.center,
-                bgcolor=ft.colors.GREEN_200,
-                width=350,
-                height=250,
-                border_radius=10,
-            ),
-            ft.Container(
-                content=ft.Row(
-                    [
-                        ft.DataTable(
-                            bgcolor="green",
-                            horizontal_lines=ft.BorderSide(1, "blue"),
-                            heading_row_color=ft.colors.BLACK12,
-                            heading_row_height=25,
-                            data_row_color={"hovered": "0x30FF0000"},
-                            column_spacing=25,
-                            columns=[
-                                ft.DataColumn(ft.Text(column))
-                                for column in gender_table_columns
-                            ],
-                            rows=self.gender_table_rows,
-                        )
-                    ]
-                ),
-                margin=9,
-                padding=9,
-                alignment=ft.alignment.center_left,
-                bgcolor=ft.colors.AMBER_400,
-                height=300,
-                border_radius=10,
+                        margin=10,
+                        padding=10,
+                        alignment=ft.alignment.center,
+                        bgcolor=ft.colors.GREEN_200,
+                        width=350,
+                        height=150,
+                        border_radius=10,
+                    ),
+                    ft.Container(
+                        content=ft.Row(
+                            [
+                                table1,
+                            ]
+                        ),
+                        bgcolor=ft.colors.GREEN_700,
+                    ),
+                ]
             ),
         ]
-
         self.page.update()
 
     def show_plot(self, e):
@@ -452,24 +358,12 @@ class AppFace:
         self.logger.log("info", f"Theme changed to {theme_mode}")
 
     def on_nav_change(self, e):
-        """
-        The function `on_nav_change` takes an event `e` and based on the selected index, it calls a
-        corresponding action method.
-
-        :param e: The `e` parameter in the `on_nav_change` function likely represents an event object
-        that contains information about the navigation change event that occurred. This object may
-        include details such as the control that triggered the event and any relevant data associated
-        with the event.
-        """
         selected_index = e.control.selected_index
-        actions = {
-            0: self.show_home,
-            1: self.show_report_downloader,
-            2: self.show_plot,
-            3: self.show_settings,
-            4: self.change_theme,
-        }
-
-        action = actions.get(selected_index)
-        if action:
-            action()
+        if selected_index == 0:
+            self.show_home()
+        elif selected_index == 1:
+            self.show_report_downloader(e)
+        elif selected_index == 2:
+            self.show_plot()
+        elif selected_index == 3:
+            self.show_settings()

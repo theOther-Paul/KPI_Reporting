@@ -28,18 +28,16 @@ class GatherData:
         return self.df[head_name].unique()
 
 
-def create_flet_table(df):
-    """
-    The function `create_flet_table` takes a DataFrame as input and returns the columns and data rows
-    formatted for a Flet table.
+def rows(df: pd.DataFrame) -> list:
+    rows = []
+    for _, row in df.iterrows():
+        rows.append(
+            ft.DataRow(
+                cells=[ft.DataCell(ft.Text(row[header])) for header in df.columns]
+            )
+        )
+    return rows
 
-    :param df: The `df` parameter in the `create_flet_table` function is expected to be a pandas
-    DataFrame
-    :return: The function `create_flet_table` returns a tuple containing the columns of the input
-    DataFrame `df` and a list of data rows for each row in the DataFrame.
-    """
-    data_rows = []
-    for row in df.itertuples(index=False):
-        data_cells = [str(cell) for cell in row]
-        data_rows.append(data_cells)
-    return df.columns, data_rows
+
+def headers(df: pd.DataFrame) -> list:
+    return [ft.DataColumn(ft.Text(header)) for header in df.columns]
