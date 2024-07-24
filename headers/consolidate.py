@@ -15,6 +15,9 @@ class GatherData:
         """
         return self.df["department"].unique()
 
+    def form_combo_country(self):
+        return self.df["country"].unique()
+
     def get_uniq_val(self, head_name):
         """
         The function `get_uniq_val` returns unique values from a specified column in a DataFrame.

@@ -6,22 +6,9 @@ This package is responsible with calculating the kpi needed for the reports
 """
 
 import pandas as pd
-from . import file_ops
-from . import consolidate
-
-
-def get_percentage(total, margin):
-    if total == 0:
-        return float(0)
-    return round((margin / total) * 100, 2)
-
-
-def calculate_gap_percentage(val1, val2):
-    return round(100 * (abs(val1 - val2) / ((val1 + val2) / 2)), 2)
-
-
-def calculate_gap_value(val1, val2):
-    return abs(val1 - val2)
+from .. import file_ops
+from .. import consolidate
+from . import calculus
 
 
 class EmployeeAnalytics:
@@ -118,17 +105,17 @@ class EmployeeAnalytics:
         ambition = "45%"
 
         gap_percentages = [
-            calculate_gap_percentage(
-                get_percentage(total_employees[0], women_employees[0]), 45
+            calculus.calculate_gap_percentage(
+            calculus.get_percentage(total_employees[0], women_employees[0]), 45
             ),
-            calculate_gap_percentage(
-                get_percentage(total_employees[1], women_employees[1]), 45
+            calculus.calculate_gap_percentage(
+                calculus.get_percentage(total_employees[1], women_employees[1]), 45
             ),
         ]
 
         gap_numbers = [
-            calculate_gap_value(women_employees[0], total_employees[0]),
-            calculate_gap_value(women_employees[1], total_employees[1]),
+            calculus.calculate_gap_value(women_employees[0], total_employees[0]),
+            calculus.calculate_gap_value(women_employees[1], total_employees[1]),
         ]
 
         data = {

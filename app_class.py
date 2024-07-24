@@ -1,6 +1,7 @@
 import flet as ft
+from headers.kpi import kpi_department, kpi_market
 from logs.logger_class import GrabLogs
-from headers import file_ops, visuals, consolidate, kpi
+from headers import file_ops, visuals, consolidate
 import pandas as pd
 import threading
 
@@ -265,7 +266,7 @@ class AppFace:
     def update_table(self, cval):
         df = file_ops.FilePrep().split_by_snap()[1]
 
-        df_to_convert = kpi.EmployeeAnalytics(df, cval).form_df()
+        df_to_convert = kpi_department.EmployeeAnalytics(df, cval).form_df()
 
         datatable = ft.DataTable(
             columns=consolidate.headers(df_to_convert),
@@ -274,7 +275,7 @@ class AppFace:
 
         return datatable
 
-    def show_home(self):
+    def show_home(self, e):
         table1 = self.update_table(self.dropdown_var)
         combo_cont = ft.Container(
             content=ft.Column(
@@ -315,25 +316,13 @@ class AppFace:
             ft.Row([combo_cont, table_cont]),
         ]
 
-        # Define a function to run after a short delay to access dimensions
         def check_dimensions():
             combo_cont_width = combo_cont.width or 0
-            print(f"combo_cont_width: {combo_cont_width}")  # Debug statement
-
             combo_cont_margin = combo_cont.margin or 0
-            print(f"combo_cont_margin: {combo_cont_margin}")  # Debug statement
-
             combo_cont_border = combo_cont.border_radius or 0
-            print(f"combo_cont_border: {combo_cont_border}")  # Debug statement
-
             table_cont_width = table_cont.width or 0
-            print(f"table_cont_width: {table_cont_width}")  # Debug statement
-
             table_cont_margin = table_cont.margin or 0
-            print(f"table_cont_margin: {table_cont_margin}")  # Debug statement
-
             table_cont_border = table_cont.border_radius or 0
-            print(f"table_cont_border: {table_cont_border}")  # Debug statement
 
             self.modified_width = (
                 combo_cont_width
@@ -347,7 +336,6 @@ class AppFace:
 
             print(f"Modified width after calc: {self.modified_width}")
 
-            # TODO: Fix this issue with the dimensions
             if self.default_width < self.modified_width:
                 self.page.window_width = self.modified_width
                 self.page.update()
@@ -414,7 +402,7 @@ class AppFace:
     def on_nav_change(self, e):
         selected_index = e.control.selected_index
         if selected_index == 0:
-            self.show_home()
+            self.show_home(e)
         elif selected_index == 1:
             self.show_report_downloader(e)
         elif selected_index == 2:
