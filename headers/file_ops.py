@@ -7,6 +7,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import json
 from datetime import date, datetime
 import functools
+from . import market_map as mm
 
 """
 @package docstring
@@ -21,6 +22,7 @@ class FilePrep:
     def __init__(self) -> None:
         self.file_name = "raw_data\\personnel3.xlsx"
         self.grab_logs = logger_class.GrabLogs()
+        self.c_map = mm.CountryMapper()
 
     def open_raw_data(self):
         """
@@ -211,6 +213,10 @@ class FilePrep:
             dfact,
         )
 
+    def asign_market(self):
+        df = self.update_df()
+        pos = self.c_map.find_column_position(df, "country")
+        df_temp=self.c_map.assign_continent(df)
 
 def repl_date():
     """
@@ -228,7 +234,7 @@ def get_quarter_month_list(q_map="headers/mapping/quarters.json"):
     """
     The function `get_quarter_month_list` reads a JSON file containing quarter-month mappings and
     returns the content as a nested dictionary.
-    
+
     :param q_map: The `q_map` parameter is the file path to a JSON file that contains a mapping of
     quarters to months for different years. The function `get_quarter_month_list` reads this JSON file
     and returns the content as a dictionary where each year is mapped to its quarters, and each quarter
@@ -278,7 +284,7 @@ def get_quarter_for_snap(month_snap):
     """
     The function `get_quarter_for_snap` determines the quarter of the year based on a given month
     abbreviation.
-    
+
     :param month_snap: The function `get_quarter_for_snap` takes a parameter `month_snap`, which is a
     string representing a month in the format "MMM-YY" (e.g., "Jan-22")
     :return: the quarter corresponding to the given month_snap.
@@ -295,7 +301,7 @@ def add_quarter_for_snap2list(list_of_lists):
     """
     The function `add_quarter_for_snap2list` iterates through a list of lists and updates the second
     element of each inner list with the quarter value obtained from a function `get_quarter_for_snap`.
-    
+
     :param list_of_lists: It seems like the code snippet you provided is incomplete. Could you please
     provide me with the contents of the `list_of_lists` variable so that I can assist you further with
     the `add_quarter_for_snap2list` function?
@@ -313,7 +319,7 @@ def add_quarter_for_snap2list(list_of_lists):
 def get_snap_list(choosen_df: pd.DataFrame, snap_column: str) -> list:
     """
     This function returns a list of unique values from a specified column in a pandas DataFrame.
-    
+
     :param choosen_df: The `choosen_df` parameter is a pandas DataFrame that contains the data from
     which you want to extract unique values from a specific column
     :type choosen_df: pd.DataFrame
