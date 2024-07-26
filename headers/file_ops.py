@@ -213,10 +213,12 @@ class FilePrep:
             dfact,
         )
 
+    # todo: Completion for this method and testing
     def asign_market(self):
         df = self.update_df()
         pos = self.c_map.find_column_position(df, "country")
-        df_temp=self.c_map.assign_continent(df)
+        df_temp = self.c_map.assign_continent(df)
+
 
 def repl_date():
     """

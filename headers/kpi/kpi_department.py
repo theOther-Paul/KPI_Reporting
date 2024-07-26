@@ -106,7 +106,7 @@ class EmployeeAnalytics:
 
         gap_percentages = [
             calculus.calculate_gap_percentage(
-            calculus.get_percentage(total_employees[0], women_employees[0]), 45
+                calculus.get_percentage(total_employees[0], women_employees[0]), 45
             ),
             calculus.calculate_gap_percentage(
                 calculus.get_percentage(total_employees[1], women_employees[1]), 45

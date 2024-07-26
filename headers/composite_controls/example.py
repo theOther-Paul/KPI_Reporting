@@ -1,4 +1,6 @@
 import flet as ft
+
+
 class Task(ft.Row):
     def __init__(self, text):
         super().__init__()
@@ -30,6 +32,7 @@ class Task(ft.Row):
         self.text_edit.visible = False
         self.text_view.value = self.text_edit.value
         self.update()
+
 
 def main(page: ft.Page):
 
