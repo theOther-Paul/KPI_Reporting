@@ -57,7 +57,7 @@ class AppFace:
             )
         )
         # Show initial content
-        self.show_home()
+        self.show_home
 
     def create_sidebar(self):
         """
@@ -73,7 +73,7 @@ class AppFace:
             min_width=100,
             min_extended_width=200,
             leading=ft.Image(
-                src=f"assets/comp_logo.jpg",
+                src="assets/comp_logo.jpg",
                 width=100,
                 height=100,
                 fit=ft.ImageFit.CONTAIN,
@@ -151,17 +151,16 @@ class AppFace:
                 self.page.update()
                 return
 
-            # Pass the DataFrame to the external function
             self.process_data_frame(df)
 
     def process_data_frame(self, df):
         print("Appending in")
-        container = file_ops.FilePrep()._append_to_df(df)
+        file_ops.FilePrep()._append_to_df(df)
         print("Appending done. wait for the confirmation message")
 
-        self.show_confimation(
+        return self.show_confimation(
             "Upload Successful",
-            "Chosen file have been successfully uploaded to the base file",
+            "The file has been successfully uploaded intop the central file. \nPress anywhere to dismiss this prompt",
         )
 
     def show_confimation(self, title, message):
@@ -233,11 +232,7 @@ class AppFace:
                             text="Upload new file",
                             icon=ft.icons.UPLOAD_FILE,
                             tooltip="Choose a file to upload to the Database",
-                            # on_click=self.create_file_picker,
-                            on_click=lambda _: self.show_confimation(
-                                "Upload Successful",
-                                "The file has been successfully uploaded intop the central file. \nPress anywhere to dismiss this prompt",
-                            ),
+                            on_click=self.create_file_picker,
                         ),
                     ]
                 ),
@@ -268,12 +263,10 @@ class AppFace:
 
         df_to_convert = kpi_department.EmployeeAnalytics(df, cval).form_df()
 
-        datatable = ft.DataTable(
+        return ft.DataTable(
             columns=consolidate.headers(df_to_convert),
             rows=consolidate.rows(df_to_convert),
         )
-
-        return datatable
 
     def show_home(self, e):
         table1 = self.update_table(self.dropdown_var)

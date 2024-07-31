@@ -7,12 +7,12 @@ from . import file_ops as fo
 
 
 def country_to_continent(country_name):
-    country_alpha2 = pconv.country_name_to_country_alpha2(country_name)
-    country_continent_code = pconv.country_alpha2_to_continent_code(country_alpha2)
-    country_continent_name = pconv.convert_continent_code_to_continent_name(
-        country_continent_code
-    )
-    return country_continent_name
+    try:
+        country_alpha2 = pconv.country_name_to_country_alpha2(country_name)
+        country_continent_code = pconv.country_alpha2_to_continent_code(country_alpha2)
+        return pconv.convert_continent_code_to_continent_name(country_continent_code)
+    except LookupError:
+        return "Unknown"
 
 
 def make_map(df: pd.DataFrame):
@@ -40,7 +40,7 @@ def memo_map(map_file="mapping\\markets.json"):
 class CountryMapper:
     def __init__(self, json_file="mapping\\markets.json"):
         p2f = os.getcwd() + "\\headers\\" + json_file
-        if len(p2f) != 0:
+        if os.path.exists(p2f) and os.path.getsize(p2f) > 0:
             with open(p2f, "r") as f:
                 self.country_to_continent = json.load(f)
         else:
@@ -48,31 +48,37 @@ class CountryMapper:
             return self.__init__()
 
     def find_column_position(self, df, column_name):
-        """
-        Find the position (index) of a column in the DataFrame.
+        return df.columns.get_loc(column_name) if column_name in df.columns else None
 
-        Parameters:
-        - df: The DataFrame to search.
-        - column_name: The name of the column to find.
+    def assign_continent(self, df, left_col_name: str, new_col_name: str):
+        """
+        Assigns continent names to country names in a DataFrame based on a mapping.
+
+        Args:
+            df: pandas.DataFrame
+            left_col_name: str - The name of the column containing country names.
+            new_col_name: str - The name of the new column to store continent names.
 
         Returns:
-        - The index of the column, or None if the column does not exist.
-        """
-        if column_name in df.columns:
-            return df.columns.get_loc(column_name)
-        return None
+            pandas.DataFrame - DataFrame with the new column added containing continent names.
 
-    def assign_continent(self, df, left_col_name, new_col_name):
+        Raises:
+            KeyError: If left_col_name does not exist in the DataFrame.
+            ValueError: If the column specified by left_col_name does not contain string values representing country names.
+        """
         if left_col_name not in df.columns:
             raise KeyError(f"Column '{left_col_name}' does not exist in the DataFrame.")
 
-        df[new_col_name] = df[left_col_name].apply(self.country_name_to_continent)
+        if df[left_col_name].dtype != object:
+            raise ValueError(
+                f"Column '{left_col_name}' must contain string values representing country names."
+            )
+
+        df[new_col_name] = (
+            df[left_col_name].map(self.country_to_continent).fillna("Unknown")
+        )
 
         position = self.find_column_position(df, left_col_name) + 1
-
-        df = pd.concat(
-            [df.iloc[:, :position], df[[new_col_name]], df.iloc[:, position + 1 :]],
-            axis=1,
-        )
+        df.insert(position, new_col_name, df.pop(new_col_name))
 
         return df

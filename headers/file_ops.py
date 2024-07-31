@@ -53,7 +53,7 @@ class FilePrep:
                     self.file_name, encoding="latin-1", low_memory=False
                 )
                 self.grab_logs.form_log(
-                    f"Content converted to Latin-1 due to encoding issues",
+                    "Content converted to Latin-1 due to encoding issues",
                     self.grab_logs.get_level("warn"),
                 )
             except Exception:
@@ -89,7 +89,8 @@ class FilePrep:
         `__append_to_excel` with the new DataFrame `new_df` as an argument.
         """
         base_df = self.update_df()
-        new_df = pd.concat([base_df, file_to_upload], ignore_index=True)
+        int_df = pd.concat([base_df, file_to_upload], ignore_index=True)
+        new_df = self.asign_market(int_df)
         return self.__append_to_excel(new_df)
 
     def __append_to_excel(self, df_to_append: pd.DataFrame):
@@ -114,7 +115,6 @@ class FilePrep:
 
     def __undo_upload(self):
         print("undo method to be developed")
-        pass
 
     def __clear_df(self):
         """This function clears the contents of the support file (dataframe) and logs it in the logger
@@ -213,11 +213,22 @@ class FilePrep:
             dfact,
         )
 
-    # todo: Completion for this method and testing
-    def asign_market(self):
-        df = self.update_df()
-        pos = self.c_map.find_column_position(df, "country")
-        df_temp = self.c_map.assign_continent(df)
+    def __dump_to_df(self, df_to_dump: pd.DataFrame):
+        try:
+            df_to_dump.to_excel(self.file_name, index=False)
+            self.grab_logs.form_log(
+                "New dataframe was dumped into the raw data file. Please consult backup file for additional checks",
+                self.grab_logs.get_level("warn"),
+            )
+        except Exception as e:
+            self.grab_logs.form_log(
+                f"New dataframe was not dumped into the raw data file due to the Exception {e}",
+                self.grab_logs.get_level("crit"),
+            )
+
+    def asign_market(self, df: pd.DataFrame):
+        new_df = self.c_map.assign_continent(df, "country", "market")
+        return self.__dump_to_df(new_df)
 
 
 def repl_date():
@@ -248,9 +259,7 @@ def get_quarter_month_list(q_map="headers/mapping/quarters.json"):
     with open(q_map, "r") as q_map_file:
         content = json.load(q_map_file)
         for year, quarters in content.items():
-            json_content[year] = {}
-            for quarter, months in quarters.items():
-                json_content[year][quarter] = months
+            json_content[year] = dict(quarters.items())
     return json_content
 
 
