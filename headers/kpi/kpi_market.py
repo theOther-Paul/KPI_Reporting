@@ -18,14 +18,14 @@ class CountryAnalytics:
 
     def get_women_combo(self):
         return self.df.loc[
-            (self.df["country"] == self.cval) & (self.df["gender"] == "Female"),
+            (self.df["market"] == self.cval) & (self.df["gender"] == "Female"),
             "employee_id",
         ].count()
 
     def get_woman_lm(self):
         return self.df.loc[
             (self.df["pay_grade"].isin(["G34", "G35", "G36"]))
-            & (self.df["country"] == self.cval)
+            & (self.df["market"] == self.cval)
             & (self.df["gender"] == "Female"),
             "employee_id",
         ].count()
@@ -39,19 +39,19 @@ class CountryAnalytics:
         ].count()
 
     def get_total_employees_combo(self):
-        return self.df.loc[self.df["country"] == self.cval, "employee_id"].count()
+        return self.df.loc[self.df["market"] == self.cval, "employee_id"].count()
 
     def get_total_employees_lm(self):
         return self.df.loc[
             (self.df["pay_grade"].isin(["G34", "G35", "G36"]))
-            & (self.df["country"] == self.cval),
+            & (self.df["market"] == self.cval),
             "employee_id",
         ].count()
 
     def get_total_employees_um(self):
         return self.df.loc[
             (self.df["pay_grade"].isin(["G37", "G38", "G39", "G40", "G41"]))
-            & (self.df["country"] == self.cval),
+            & (self.df["market"] == self.cval),
             "employee_id",
         ].count()
 

@@ -15,8 +15,6 @@ class AppFace:
         self.page.title = "KPI Reporting v.01"
         self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
-        print(f"width: {self.page.width} \n height: {self.page.height}")
-
         self.default_width = self.page.width
         self.default_height = self.page.height
 
@@ -33,17 +31,29 @@ class AppFace:
         self.content = ft.Column(controls=[], expand=True)
 
         # ComboBox and dropdowns
-        self.raw_drop = consolidate.GatherData().form_combo()
-        self.dropdown_var = None
+        self.dpt_raw_drop = consolidate.GatherData().form_combo("department")
+        self.dpt_dropdown_var = None
 
-        self.dropdown = ft.Dropdown(
+        self.mkt_raw_drop = consolidate.GatherData().form_combo("market")
+        self.mkt_dropdown_var = None
+
+        self.department_dropdown = ft.Dropdown(
             hint_text="Choose a department",
             width=200,
-            options=[ft.dropdown.Option(value) for value in self.raw_drop],
-            on_change=self.drop_changed,
+            options=[ft.dropdown.Option(value) for value in self.dpt_raw_drop],
+            on_change=self.dpt_drop_changed,
         )
 
-        self.empty_text_label = ft.Text()
+        self.department_empty_textlabel = ft.Text()
+
+        self.market_dropdown = ft.Dropdown(
+            hint_text="Choose a market",
+            width=200,
+            options=[ft.dropdown.Option(value) for value in self.mkt_raw_drop],
+            on_change=self.mkt_drop_changed,
+        )
+
+        self.market_empty_textlabel = ft.Text()
 
         # Layout with sidebar and main content
         self.page.add(
@@ -99,6 +109,9 @@ class AppFace:
                     icon=ft.icons.SETTINGS_OUTLINED,
                     selected_icon=ft.icons.SETTINGS_SHARP,
                     label="Settings",
+                ),
+                ft.NavigationDestination(
+                    icon=ft.icons.REFRESH_SHARP, label="Refresh App"
                 ),
             ],
             on_change=self.on_nav_change,
@@ -248,17 +261,30 @@ class AppFace:
 
         self.page.update()
 
-    def drop_changed(self, e):
-        self.dropdown_var = e.control.value
-        self.empty_text_label.value = f"Selected Value: {self.dropdown_var}"
+    def dpt_drop_changed(self, e):
+        self.dpt_dropdown_var = e.control.value
+        self.department_empty_textlabel.value = (
+            f"Selected Value: {self.dpt_dropdown_var}"
+        )
 
-        self.content.controls[1].controls[1].content = self.update_table(
-            self.dropdown_var
+        self.content.controls[1].controls[1].content = self.update_dept_table(
+            self.dpt_dropdown_var
         )
 
         self.page.update()
 
-    def update_table(self, cval):
+    def mkt_drop_changed(self, e):
+        self.mkt_dropdown_var = e.control.value
+        self.market_empty_textlabel.value = f"Selected Value: {self.mkt_dropdown_var}"
+
+        # woould update with the following formula: self.content.controls[index].controls [val].content
+        self.content.controls[2].controls[1].content = self.update_mkt_table(
+            self.mkt_dropdown_var
+        )
+
+        self.page.update()
+
+    def update_dept_table(self, cval):
         df = file_ops.FilePrep().split_by_snap()[1]
 
         df_to_convert = kpi_department.EmployeeAnalytics(df, cval).form_df()
@@ -268,14 +294,26 @@ class AppFace:
             rows=consolidate.rows(df_to_convert),
         )
 
+    def update_mkt_table(self, cval):
+        df = file_ops.FilePrep().split_by_snap()[1]
+
+        df_to_convert = kpi_market.CountryAnalytics(df, cval).form_df()
+
+        return ft.DataTable(
+            columns=consolidate.headers(df_to_convert),
+            rows=consolidate.rows(df_to_convert),
+        )
+
     def show_home(self, e):
-        table1 = self.update_table(self.dropdown_var)
+        table1 = self.update_dept_table(self.dpt_dropdown_var)
+        table2 = self.update_mkt_table(self.mkt_dropdown_var)
+
         combo_cont = ft.Container(
             content=ft.Column(
                 [
-                    ft.Text("Combobox section"),
-                    self.dropdown,
-                    self.empty_text_label,
+                    ft.Text("Department section"),
+                    self.department_dropdown,
+                    self.department_empty_textlabel,
                 ]
             ),
             margin=10,
@@ -301,12 +339,45 @@ class AppFace:
             padding=10,
         )
 
+        market_combo_cont = ft.Container(
+            content=ft.Column(
+                [
+                    ft.Text("Market section"),
+                    self.market_dropdown,
+                    self.market_empty_textlabel,
+                ]
+            ),
+            margin=10,
+            padding=10,
+            alignment=ft.alignment.center,
+            bgcolor=ft.colors.BLUE_700,
+            width=350,
+            height=150,
+            border_radius=10,
+        )
+
+        market_table_cont = ft.Container(
+            content=ft.Row(
+                [
+                    table2,
+                ]
+            ),
+            bgcolor=ft.colors.GREEN_700,
+            margin=10,
+            alignment=ft.alignment.center,
+            border_radius=10,
+            width=800,
+            padding=10,
+        )
+
         if self.default_width < self.modified_width:
             self.page.width = self.modified_width
 
         self.content.controls = [
-            ft.Text("Welcome to the KPI Reporting App"),
-            ft.Row([combo_cont, table_cont]),
+            ft.Text("Welcome to the KPI Reporting App"),  # index 0
+            ft.Row([combo_cont, table_cont]),  # index 1
+            ft.Row([market_combo_cont, market_table_cont]),  # index 2
+            #           val 0, val 1
         ]
 
         def check_dimensions():
@@ -326,8 +397,6 @@ class AppFace:
                 + table_cont_border * 2
                 + 171
             )
-
-            print(f"Modified width after calc: {self.modified_width}")
 
             if self.default_width < self.modified_width:
                 self.page.window_width = self.modified_width
@@ -383,6 +452,15 @@ class AppFace:
         ]
         self.page.update()
 
+    def refresh_app(self, e):
+        t_open = threading.Thread(target=AppFace(ft.Page))
+        t_close = threading.Thread(target=self.page.window_close())
+
+        t_open.start()
+        t_close.start()
+
+        self.page.update()
+
     def check_item_clicked(self, param):
         param.control.checked = not param.control.checked
         self.page.update()
@@ -402,3 +480,5 @@ class AppFace:
             self.show_plot(e)
         elif selected_index == 3:
             self.show_settings(e)
+        elif selected_index == 4:
+            self.refresh_app(e)
