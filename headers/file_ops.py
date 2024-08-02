@@ -152,35 +152,25 @@ class FilePrep:
         return snap_list
 
     def map_quarters(self):
-        """
-        This function maps the current quarter and the previous quarter based on a list of months and years.
-        :return: The code is returning the actual quarter and the previous quarter based on the input data.
-        """
         snap = last_quarters(self.__snap_list())
-        month = []
-        year = []
-        for val in snap:
-            month.append(val[:3])
-            year.append(val[-2:])
+        month = [val[:3] for val in snap]
+        year = [val[-2:] for val in snap]
         q_list = get_quarter_month_list()
-        res = []
-        key_list = []
-        for key, values in q_list.items():
-            if key not in ["Q1 20", "Q2 20", "Q3 20", "Q4 20"]:
-                break
-            res.extend(n[:3] for n in values)
-        for key, values in q_list.items():
-            if key[3:] in year[0] or key[3:] == year[0]:
-                for vv in values:
-                    for valm in month:
-                        if valm in vv or valm == vv:
-                            key_list.extend(
-                                key for l_res in res if l_res in valm or l_res == valm
-                            )
-                # if key_list[0] == key_list[1]:
-                #     raise Exception("Same Quarter")
-                # else:
-        return key_list[1], key_list[0]  # actual quarter and previous quarter
+        res = [
+            n[:3]
+            for key, values in q_list.items()
+            if key in ["Q1 20", "Q2 20", "Q3 20", "Q4 20"]
+            for n in values
+        ]
+        key_list = [
+            key
+            for key, values in q_list.items()
+            if key[3:] in year[0]
+            for vv in values
+            for valm in month
+            if valm in vv
+        ]
+        return key_list[1], key_list[0]
 
     def map_q(self):
         """
@@ -285,10 +275,11 @@ def get_actual_q():
     c_month = date.strftime("%b")
     base = get_quarter_month_list()
     for key, val in base.items():
-        if key[3:] in str(c_year):
-            for x in range(len(val)):
-                if c_month in val[x]:
-                    return key
+        if key in str(c_year):
+            for idx, x in val.items():
+                for mth in x:
+                    if c_month in mth:
+                        return idx
 
 
 def get_quarter_for_snap(month_snap):
