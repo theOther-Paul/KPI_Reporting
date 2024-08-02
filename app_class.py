@@ -30,7 +30,7 @@ class AppFace:
         self.sidebar = self.create_sidebar()
         self.content = ft.Column(controls=[], expand=True)
 
-        # ComboBox and dropdowns
+        # ComboBox and dropdowns for home page
         self.dpt_raw_drop = consolidate.GatherData().form_combo("department")
         self.dpt_dropdown_var = None
 
@@ -54,6 +54,19 @@ class AppFace:
         )
 
         self.market_empty_textlabel = ft.Text()
+
+        # Combobox and dropdowns for reports page
+        self.dpt_rp_drop = consolidate.GatherData().form_combo("department")
+        self.dpt_rp_drop_var = None
+
+        self.dpt_rp_dropdown = ft.Dropdown(
+            hint_text="Choose a department",
+            width=300,
+            options=[ft.dropdown.Option(value) for value in self.dpt_rp_drop],
+            on_change=self.dpt_rp_drop_changed,
+        )
+
+        self.dpt_rp_empty_textlabel = ft.Text()
 
         # Layout with sidebar and main content
         self.page.add(
@@ -257,6 +270,33 @@ class AppFace:
                 height=150,
                 border_radius=10,
             ),
+            ft.Container(
+                content=ft.Row(
+                    [
+                        ft.Column(
+                            [
+                                ft.Text("Generate report for department"),
+                                self.dpt_rp_dropdown,
+                                self.dpt_rp_empty_textlabel,
+                            ]
+                        ),
+                        ft.Column(
+                            [
+                                ft.ElevatedButton(
+                                    "Generate QvQ report",
+                                    icon="add",
+                                    on_click=lambda _: print("Button clicked!"),
+                                )
+                            ]
+                        ),
+                    ]
+                ),
+                margin=10,
+                padding=10,
+                alignment=ft.alignment.center,
+                bgcolor=ft.colors.BLUE_500,
+                border_radius=10,
+            ),
         ]
 
         self.page.update()
@@ -278,9 +318,15 @@ class AppFace:
         self.market_empty_textlabel.value = f"Selected Value: {self.mkt_dropdown_var}"
 
         # woould update with the following formula: self.content.controls[index].controls [val].content
-        self.content.controls[2].controls[1].content = self.update_mkt_table(
+        self.content.controls[3].controls[1].content = self.update_mkt_table(
             self.mkt_dropdown_var
         )
+
+        self.page.update()
+
+    def dpt_rp_drop_changed(self, e):
+        self.dpt_rp_drop_var = e.control.value
+        self.dpt_rp_empty_textlabel.value = f"Selected Value: {self.dpt_rp_drop_var}"
 
         self.page.update()
 
@@ -373,10 +419,35 @@ class AppFace:
         if self.default_width < self.modified_width:
             self.page.width = self.modified_width
 
+        def toggle_icon_button(e):
+            e.control.selected = not e.control.selected
+            self.show_confimation("Data Linked", "Data have the same source")
+            e.control.update()
+
         self.content.controls = [
             ft.Text("Welcome to the KPI Reporting App"),  # index 0
             ft.Row([combo_cont, table_cont]),  # index 1
-            ft.Row([market_combo_cont, market_table_cont]),  # index 2
+            # TODO: Create an intersection class and link the data between the 2 tables. Not urgent
+            ft.Row(
+                [
+                    ft.IconButton(
+                        icon=ft.icons.LINK_OFF_OUTLINED,
+                        selected_icon=ft.icons.LINK_OUTLINED,
+                        icon_color=ft.colors.PINK_600,
+                        icon_size=40,
+                        tooltip="Link department and market",
+                        on_click=toggle_icon_button,
+                        selected=False,
+                        style=ft.ButtonStyle(
+                            color={
+                                "selected": ft.colors.GREEN_600,
+                                "": ft.colors.RED_600,
+                            }
+                        ),
+                    )
+                ]
+            ),
+            ft.Row([market_combo_cont, market_table_cont]),  # index 3
             #           val 0, val 1
         ]
 
