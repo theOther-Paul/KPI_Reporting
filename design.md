@@ -17,9 +17,9 @@ A 2 container app, with a sidebar and a main container that shows the data in th
 
 ## KPI Caluculation
 ### KPIs
-- Gender diversity for paygrades for various countries. Main grades: G34+ and G37+
+- Gender diversity for paygrades for various markets. Main grades: G34+ and G37+
 - Gender distribution in education
-- ethnic distribution per regions
+- ethnic distribution per markets
 
 ### Calculations
 - Aggregate the population for a specified region

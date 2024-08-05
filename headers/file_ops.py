@@ -293,10 +293,11 @@ def get_quarter_for_snap(month_snap):
     """
     q_list = get_quarter_month_list()
     for key, val in q_list.items():
-        if key[3:] in str(month_snap[-2:]):
-            for x in range(len(val)):
-                if month_snap[:3] in val[x][:3]:
-                    return key
+        if key in month_snap:
+            for q, mth in val.items():
+                for m in mth:
+                    if month_snap[:3] in m:
+                        return q, key
 
 
 def add_quarter_for_snap2list(list_of_lists):
@@ -348,3 +349,11 @@ def split_by_snap_custom(choosen_df, column_for_snap):
         dfprev,
         dfact,
     )
+
+
+def convert_date_string(date_str: str) -> str:
+    try:
+        date_obj = datetime.strptime(date_str, "%d/%m/%Y")
+        return date_obj.strftime("%b-%Y")
+    except ValueError as e:
+        return f"Error: {e}"

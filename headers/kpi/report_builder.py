@@ -75,3 +75,22 @@ class BuildReport(fo.FilePrep):
     def build_report(self):
         last_q = self.map_q()[0]
         actual_q = self.map_q()[1]
+
+        rep_title = f"Quarterly Reports {last_q[0]} {last_q[1]} vs. {actual_q[0]} {actual_q[1]} for {self.dpt}"
+
+        rep_loc = f"{os.getcwd()}\\QvQ Files\\{rep_title}.xlsx"
+
+        with xw.App() as rb:
+            wb = rb.books(rep_loc)
+
+            ws1 = wb.sheets("Gender Split in Management per market")
+
+            ws2 = wb.sheets("Gender Split in Education")
+
+            ws3 = wb.sheets("Ethnic Distribution per Markets")
+
+            ws4 = wb.sheets("Movements")
+
+            ws5 = wb.sheets("Population")
+
+            ws6 = wb.sheets("Comments")
