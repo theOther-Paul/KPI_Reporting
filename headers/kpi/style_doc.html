@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Excel Styling Functions Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        h1 {
+            background-color: #4a4a4a;
+            color: #ffffff;
+            padding: 10px 0;
+            text-align: center;
+            margin: 0;
+        }
+
+        h2 {
+            background-color: #e2e2e2;
+            color: #333;
+            padding: 8px;
+            border-bottom: 2px solid #ccc;
+            margin-top: 20px;
+        }
+
+        p {
+            margin: 0 0 10px 0;
+        }
+
+        ul {
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+        }
+
+        ul li {
+            margin: 5px 0;
+        }
+
+        pre {
+            background-color: #eeeeee;
+            border-left: 3px solid #333;
+            padding: 10px;
+            overflow-x: auto;
+            border-radius: 5px;
+        }
+
+        .header-text-look {
+            background-color: rgb(112, 48, 160);
+            color: white;
+        }
+
+        .header2-text-look {
+            background-color: rgb(47, 117, 181);
+            color: white;
+        }
+
+        .header3-text-look {
+            background-color: rgb(0, 176, 80);
+            color: white;
+        }
+
+        .adaptive-header1-style {
+            background-color: rgb(112, 48, 160);
+            color: white;
+        }
+
+        .ci-count-style {
+            background-color: rgb(0, 112, 192);
+            color: white;
+        }
+
+        .adaptive-header2-style {
+            background-color: rgb(47, 117, 181);
+            color: white;
+        }
+
+        .adaptive-header3-style {
+            background-color: rgb(0, 176, 80);
+            color: white;
+        }
+
+        .adaptive-ci-header-style {
+            background-color: rgb(68, 84, 106);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Excel Styling Functions</h1>
+
+        <h2 class="header-text-look">header_text_look</h2>
+        <p>Apply a specific header style to a cell.</p>
+        <ul>
+            <li><strong>Parameters:</strong></li>
+            <ul>
+                <li><strong>worksheet1</strong>: The worksheet object where the styling will be applied.</li>
+                <li><strong>arg1</strong>: The cell address (e.g., 'A1') as a string to apply the style to.</li>
+            </ul>
+            <li><strong>Example:</strong></li>
+            <pre>
+import xlwings as xw
+
+wb = xw.Book()
+ws = wb.sheets['Sheet1']
+header_text_look(ws, 'A1')
+            </pre>
+        </ul>
+
+        <h2 class="header2-text-look">header2_text_look</h2>
+        <p>Apply a secondary header style to a cell.</p>
+        <ul>
+            <li><strong>Parameters:</strong></li>
+            <ul>
+                <li><strong>worksheet1</strong>: The worksheet object where the styling will be applied.</li>
+                <li><strong>arg1</strong>: The cell address (e.g., 'A1') as a string to apply the style to.</li>
+            </ul>
+            <li><strong>Example:</strong></li>
+            <pre>
+import xlwings as xw
+
+wb = xw.Book()
+ws = wb.sheets['Sheet1']
+header2_text_look(ws, 'A1')
+            </pre>
+        </ul>
+
+        <h2 class="header3-text-look">header3_text_look</h2>
+        <p>Apply a third header style to a cell.</p>
+        <ul>
+            <li><strong>Parameters:</strong></li>
+            <ul>
+                <li><strong>worksheet1</strong>: The worksheet object where the styling will be applied.</li>
+                <li><strong>arg1</strong>: The cell address (e.g., 'A1') as a string to apply the style to.</li>
+            </ul>
+            <li><strong>Example:</strong></li>
+            <pre>
+import xlwings as xw
+
+wb = xw.Book()
+ws = wb.sheets['Sheet1']
+header3_text_look(ws, 'A1')
+            </pre>
+        </ul>
+
+        <h2 class="adaptive-header1-style">adaptive_header1_style</h2>
+        <p>Apply an adaptive header style to a cell based on row and column indices.</p>
+        <ul>
+            <li><strong>Parameters:</strong></li>
+            <ul>
+                <li><strong>worksheet1</strong>: The worksheet object where the styling will be applied.</li>
+                <li><strong>arg1</strong>: A tuple containing the row and column indices (e.g., (1, 1)).</li>
+            </ul>
+            <li><strong>Example:</strong></li>
+            <pre>
+import xlwings as xw
+
+wb = xw.Book()
+ws = wb.sheets['Sheet1']
+adaptive_header1_style(ws, (1, 1))
+            </pre>
+        </ul>
+
+        <h2 class="ci-count-style">ci_count_style</h2>
+        <p>Apply a CI count style to a cell based on row and column indices.</p>
+        <ul>
+            <li><strong>Parameters:</strong></li>
+            <ul>
+                <li><strong>worksheet1</strong>: The worksheet object where the styling will be applied.</li>
+                <li><strong>arg1</strong>: A tuple containing the row and column indices (e.g., (1, 1)).</li>
+            </ul>
+            <li><strong>Example:</strong></li>
+            <pre>
+import xlwings as xw
+
+wb = xw.Book()
+ws = wb.sheets['Sheet1']
+ci_count_style(ws, (1, 1))
+            </pre>
+        </ul>
+
+        <h2 class="adaptive-header2-style">adaptive_header2_style</h2>
+        <p>Apply an adaptive header style to a cell based on row and column indices.</p>
+        <ul>
+            <li><strong>Parameters:</strong></li>
+            <ul>
+                <li><strong>worksheet1</strong>: The worksheet object where the styling will be applied.</li>
+                <li><strong>arg_list</strong>: A list containing the row and column indices (e.g., [1, 1]).</li>
+            </ul>
+            <li><strong>Example:</strong></li>
+            <pre>
+import xlwings as xw
+
+wb = xw.Book()
+ws = wb.sheets['Sheet1']
+adaptive_header2_style(ws, [1, 1])
+            </pre>
+        </ul>
+
+        <h2 class="adaptive-header3-style">adaptive_header3_style</h2>
+        <p>Apply an adaptive header style to a cell based on row and column indices.</p>
+        <ul>
+            <li><strong>Parameters:</strong></li>
+            <ul>
+                <li><strong>worksheet1</strong>: The worksheet object where the styling will be applied.</li>
+                <li><strong>arg_list</strong>: A list containing the row and column indices (e.g., [1, 1]).</li>
+            </ul>
+            <li><strong>Example:</strong></li>
+            <pre>
+import xlwings as xw
+
+wb = xw.Book()
+ws = wb.sheets['Sheet1']
+adaptive_header3_style(ws, [1, 1])
+            </pre>
+        </ul>
+
+        <h2 class="adaptive-ci-header-style">adaptive_ci_header_style</h2>
+        <p>Apply a CI header style to a cell based on row and column indices.</p>
+        <ul>
+            <li><strong>Parameters:</strong></li>
+            <ul>
+                <li><strong>worksheet1</strong>: The worksheet object where the styling will be applied.</li>
+                <li><strong>arg_list</strong>: A list containing the row and column indices (e.g., [1, 1]).</li>
+            </ul>
+            <li><strong>Example:</strong></li>
+            <pre>
+import xlwings as xw
+
+wb = xw.Book()
+ws = wb.sheets['Sheet1']
+adaptive_ci_header_style(ws, [1, 1])
+            </pre>
+        </ul>
+    </div>
+</body>
+
+</html>

@@ -76,21 +76,32 @@ class BuildReport(fo.FilePrep):
         last_q = self.map_q()[0]
         actual_q = self.map_q()[1]
 
-        rep_title = f"Quarterly Reports {last_q[0]} {last_q[1]} vs. {actual_q[0]} {actual_q[1]} for {self.dpt}"
+        rep_title = f"Q{last_q[1]} vs Q{actual_q[1]} {self.dpt}"
 
-        rep_loc = f"{os.getcwd()}\\QvQ Files\\{rep_title}.xlsx"
+        rep_loc = os.path.join(os.getcwd(), "QvQ Files", rep_title)
 
         with xw.App() as rb:
-            wb = rb.books(rep_loc)
+            self._build_report(rb, rep_loc)
 
-            ws1 = wb.sheets("Gender Split in Management per market")
+    def _build_report(self, rb, rep_loc):
+        wb = rb.books.add()
+        rb.display_alerts = False
 
-            ws2 = wb.sheets("Gender Split in Education")
+        ws1 = wb.sheets.add(name="Gender Split per market")
+        ws1["A1"].value = "Hello"
 
-            ws3 = wb.sheets("Ethnic Distribution per Markets")
+        ws2 = wb.sheets.add(name="Gender Split in Education")
 
-            ws4 = wb.sheets("Movements")
+        ws3 = wb.sheets.add(name="Ethnic Split per Markets")
 
-            ws5 = wb.sheets("Population")
+        ws4 = wb.sheets.add(name="Movements")
 
-            ws6 = wb.sheets("Comments")
+        ws5 = wb.sheets.add(name="Population")
+
+        ws6 = wb.sheets.add(name="Comments")
+
+        if "Sheet1" in [sheet.name for sheet in wb.sheets]:
+            wb.sheets["Sheet1"].delete()
+
+        wb.save(f"{rep_loc}.xlsx")
+        wb.close()

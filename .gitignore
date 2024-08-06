@@ -164,6 +164,7 @@ misc
 # QvQ Files/*.xls
 # QvQ Files/*.csv
 
+QvQ Files/*
 !QvQ Files/*.md
 
 # PyCharm
