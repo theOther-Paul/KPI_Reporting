@@ -1,4 +1,6 @@
 import xlwings as xw
+import pandas as pd
+
 
 def header_text_look(worksheet1, arg1):
     """
@@ -166,3 +168,24 @@ def adaptive_ci_header_style(worksheet1, arg_list):
     worksheet1[arg_list[1] - 1, arg_list[0] - 1].color = (68, 84, 106)
     worksheet1[arg_list[1] - 1, arg_list[0] - 1].api.Font.Bold = True
     worksheet1[arg_list[1] - 1, arg_list[0] - 1].api.Font.ColorIndex = 2
+
+def write_dataframe_with_borders(ws, cell, df):
+
+    ws[cell].options(pd.DataFrame, header=1, index=False, expand="table").value = df
+
+    last_row = ws[cell].row + df.shape[0]
+    last_col = ws[cell].column + df.shape[1] - 1
+    data_range = ws.range(ws[cell].address, ws[last_row, last_col].address)
+
+    border_types = {
+        "left": 1,
+        "right": 2,
+        "top": 3,
+        "bottom": 4,
+        "inside_horizontal": 12,
+        "inside_vertical": 11,
+    }
+
+    for border_position in border_types.values():
+        data_range.api.Borders(border_position).LineStyle = 1
+        data_range.api.Borders(border_position).Weight = 2

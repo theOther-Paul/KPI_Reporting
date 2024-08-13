@@ -15,6 +15,8 @@ class EmployeeAnalytics:
     def __init__(self, df, cval):
         self.df = df
         self.cval = cval
+        self.UM = ["G37", "G38", "G39", "G40", "G41"]
+        self.LM = ["G34", "G35", "G36"]
 
     def get_women_combo(self):
         """
@@ -35,7 +37,7 @@ class EmployeeAnalytics:
         G35, or G36 in the specified department (`self.cval`).
         """
         return self.df.loc[
-            (self.df["pay_grade"].isin(["G34", "G35", "G36"]))
+            (self.df["pay_grade"].isin(self.LM))
             & (self.df["department"] == self.cval)
             & (self.df["gender"] == "Female"),
             "employee_id",
@@ -50,7 +52,7 @@ class EmployeeAnalytics:
         department matches the value stored in `self.cval`, and the gender is "Female".
         """
         return self.df.loc[
-            (self.df["pay_grade"].isin(["G37", "G38", "G39", "G40", "G41"]))
+            (self.df["pay_grade"].isin(self.UM))
             & (self.df["department"] == self.cval)
             & (self.df["gender"] == "Female"),
             "employee_id",
@@ -70,11 +72,10 @@ class EmployeeAnalytics:
         The function `get_total_employees_lm` returns the count of employees with pay grades G34, G35, or
         G36 in a specific department.
         :return: The `get_total_employees_lm` method is returning the count of employees whose pay grade is
-        in ["G34", "G35", "G36"] and who belong to the department specified by `self.cval`.
+        in self.LM and who belong to the department specified by `self.cval`.
         """
         return self.df.loc[
-            (self.df["pay_grade"].isin(["G34", "G35", "G36"]))
-            & (self.df["department"] == self.cval),
+            (self.df["pay_grade"].isin(self.LM)) & (self.df["department"] == self.cval),
             "employee_id",
         ].count()
 
@@ -86,10 +87,37 @@ class EmployeeAnalytics:
         grades G37, G38, G39, G40, or G41 and are in the department specified by `self.cval`.
         """
         return self.df.loc[
-            (self.df["pay_grade"].isin(["G37", "G38", "G39", "G40", "G41"]))
-            & (self.df["department"] == self.cval),
+            (self.df["pay_grade"].isin(self.UM)) & (self.df["department"] == self.cval),
             "employee_id",
         ].count()
+
+    def get_market_UM_by_dpt(self):
+        filtered_df = self.df.loc[
+            (self.df["department"] == self.cval) & (self.df["pay_grade"].isin(self.UM)),
+            ["market"],
+        ]
+
+        if filtered_df.empty:
+            all_markets_in_dept = self.df.loc[
+                self.df["department"] == self.cval, "market"
+            ].unique()
+
+            empty_market_counts = pd.DataFrame(
+                {
+                    "market": all_markets_in_dept,
+                    "employee_id": [0] * len(all_markets_in_dept),
+                }
+            )
+
+            return empty_market_counts.reset_index(drop=True)
+
+        market_counts = (
+            filtered_df.groupby("market").size().reset_index(name="employee_id")
+        )
+
+        market_counts = market_counts.reset_index(drop=True)
+
+        return market_counts
 
     def form_df(self):
         """

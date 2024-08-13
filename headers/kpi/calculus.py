@@ -19,3 +19,8 @@ def calculate_gap_percentage(val1, val2):
 
 def calculate_gap_value(val1, val2):
     return abs(val1 - val2)
+
+
+# TODO: implement this function
+def compare_progress():
+    pass

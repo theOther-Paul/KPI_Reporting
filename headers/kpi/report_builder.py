@@ -8,6 +8,7 @@ from .. import file_ops as fo
 import xlwings as xw
 import threading
 from .. import consolidate as CS
+from . import excel_styles as es
 
 
 class BuildReport(fo.FilePrep):
@@ -84,11 +85,30 @@ class BuildReport(fo.FilePrep):
             self._build_report(rb, rep_loc)
 
     def _build_report(self, rb, rep_loc):
+
+        last_df = self.split_by_snap()[0]
+        actual_df = self.split_by_snap()[1]
+
         wb = rb.books.add()
         rb.display_alerts = False
 
         ws1 = wb.sheets.add(name="Gender Split per market")
-        ws1["A1"].value = "Hello"
+
+        ws1["B2"].value = "Market Lists with gender %"
+        ws1.range("B2:D2").merge()
+        es.header_text_look(ws1, "A2:E2")
+
+        um_gen_df = kdep.EmployeeAnalytics(actual_df, self.dpt).get_market_UM_by_dpt()
+
+        ws1["B4"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
+            um_gen_df
+        )
+
+        es.write_dataframe_with_borders(ws1, "B4", um_gen_df)
+
+        ws1["B17"].value = "Upper Management members"
+        ws1.range("B17:D17").merge()
+        es.header2_text_look(ws1, "A17:E17")
 
         ws2 = wb.sheets.add(name="Gender Split in Education")
 
@@ -96,12 +116,14 @@ class BuildReport(fo.FilePrep):
 
         ws4 = wb.sheets.add(name="Movements")
 
-        ws5 = wb.sheets.add(name="Population")
+        ws5 = wb.sheets.add(name="Actual Population")
 
         ws6 = wb.sheets.add(name="Comments")
 
         if "Sheet1" in [sheet.name for sheet in wb.sheets]:
             wb.sheets["Sheet1"].delete()
+
+        ws1.activate()
 
         wb.save(f"{rep_loc}.xlsx")
         wb.close()
