@@ -91,6 +91,7 @@ class BuildReport(fo.FilePrep):
 
         wb = rb.books.add()
         rb.display_alerts = False
+        # =======================================================================================
 
         ws1 = wb.sheets.add(name="Gender Split per market")
 
@@ -109,16 +110,56 @@ class BuildReport(fo.FilePrep):
         ws1["B17"].value = "Upper Management members"
         ws1.range("B17:D17").merge()
         es.header2_text_look(ws1, "A17:E17")
+        # =======================================================================================
 
         ws2 = wb.sheets.add(name="Gender Split in Education")
+        # =======================================================================================
 
         ws3 = wb.sheets.add(name="Ethnic Split per Markets")
+        # =======================================================================================
 
         ws4 = wb.sheets.add(name="Movements")
 
+        # =======================================================================================
         ws5 = wb.sheets.add(name="Actual Population")
 
+        ws5["C2"].value = "Actual population for the current quarter"
+
+        ws5.range("B2:D2").merge()
+        es.header2_text_look(ws5, "B2:D2")
+
+        current_population = kdep.EmployeeAnalytics(
+            actual_df, self.dpt
+        ).get_actual_population()
+
+        ws5["B4"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
+            current_population
+        )
+
+        es.write_dataframe_with_borders(ws5, "B4", current_population)
+
+        # =======================================================================================
         ws6 = wb.sheets.add(name="Comments")
+
+        ws6["B2"].value = "Please write you comments below, based on the table formula"
+        ws6.range("B2:E2").merge()
+        es.header_text_look(ws6, "B2:E2")
+
+        ws6["B4"].value = "employee_id"
+        ws6["E4"].value = "first_name"
+        ws6["F4"].value = "last_name"
+        ws6["G4"].value = "Comments"
+
+        # TODO: Fix this border
+        es.header3_text_look(ws6, "B4:G4")
+        ws6.range("B4:G4").api.Borders.LineStyle = 1
+        ws6.range("B4:G4").api.Borders.Weight = 2
+
+        ws6["A5"].value = "Example"
+        ws6["B5"].value = "2002"
+        ws6["E5"].value = "Smith"
+        ws6["F5"].value = "Jane"
+        ws6["G5"].value = "Moved to Sales before May-2024"
 
         if "Sheet1" in [sheet.name for sheet in wb.sheets]:
             wb.sheets["Sheet1"].delete()

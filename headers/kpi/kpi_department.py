@@ -119,6 +119,12 @@ class EmployeeAnalytics:
 
         return market_counts
 
+    def get_actual_population(self):
+        return self.df.loc[self.df["department"] == self.cval]
+
+    def get_actual_population_df(self, df):
+        return df.loc[df["department"] == self.cval]
+
     def form_df(self):
         """
         The `form_df` function calculates gender pay gap percentages and values for different management
