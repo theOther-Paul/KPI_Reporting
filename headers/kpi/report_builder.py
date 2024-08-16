@@ -1,3 +1,4 @@
+from operator import index
 from . import kpi_department as kdep
 from . import kpi_market as kmkt
 import pandas as pd
@@ -110,12 +111,44 @@ class BuildReport(fo.FilePrep):
         ws1["B17"].value = "Upper Management members"
         ws1.range("B17:D17").merge()
         es.header2_text_look(ws1, "A17:E17")
+
+        um_members = kdep.EmployeeAnalytics(actual_df, self.dpt).get_um_members_w_data()
+        ws1["B19"].options(
+            pd.DataFrame, header=1, index=False, expand="table"
+        ).value = um_members
+
+        es.write_dataframe_with_borders(ws1, "B19", um_members)
+
+        um_qvq_data = [
+            self.get_gender_split_um(last_df),
+            self.get_gender_split_um(actual_df),
+        ]
+
+        qvq_columns = ["Previous Q", "Actual Q", "Progress"]
+
+        um_qvq_df = pd.DataFrame(um_qvq_data, columns=qvq_columns)
+
+        ws1["F3"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
+            um_qvq_df
+        )
+        es.write_dataframe_with_borders(ws1, "F3", um_qvq_df)
+
+        lm_qvq_data = [
+            self.get_gender_split_lm(last_df),
+            self.get_gender_split_lm(actual_df),
+        ]
+
+        lm_qvq_df = pd.DataFrame(lm_qvq_data, columns=qvq_columns)
+
+        ws1["F9"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
+            um_qvq_df
+        )
+        es.write_dataframe_with_borders(ws1, "F9", lm_qvq_df)
+
         # =======================================================================================
 
         ws2 = wb.sheets.add(name="Gender Split in Education")
-        # =======================================================================================
 
-        ws3 = wb.sheets.add(name="Ethnic Split per Markets")
         # =======================================================================================
 
         ws4 = wb.sheets.add(name="Movements")
@@ -142,8 +175,8 @@ class BuildReport(fo.FilePrep):
         ws6 = wb.sheets.add(name="Comments")
 
         ws6["B2"].value = "Please write you comments below, based on the table formula"
-        ws6.range("B2:E2").merge()
-        es.header_text_look(ws6, "B2:E2")
+        ws6.range("B2:G2").merge()
+        es.header_text_look(ws6, "B2:G2")
 
         ws6["B4"].value = "employee_id"
         ws6["E4"].value = "first_name"

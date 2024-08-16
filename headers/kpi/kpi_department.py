@@ -122,6 +122,13 @@ class EmployeeAnalytics:
     def get_actual_population(self):
         return self.df.loc[self.df["department"] == self.cval]
 
+    def get_um_members_w_data(self):
+        df = self.get_actual_population()
+        return df.loc[
+            (self.df["pay_grade"].isin(self.UM)),
+            ["first_name", "last_name", "gender", "market", "pay_grade"],
+        ]
+
     def get_actual_population_df(self, df):
         return df.loc[df["department"] == self.cval]
 

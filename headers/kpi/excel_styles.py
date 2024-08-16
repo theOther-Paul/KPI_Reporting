@@ -169,12 +169,13 @@ def adaptive_ci_header_style(worksheet1, arg_list):
     worksheet1[arg_list[1] - 1, arg_list[0] - 1].api.Font.Bold = True
     worksheet1[arg_list[1] - 1, arg_list[0] - 1].api.Font.ColorIndex = 2
 
+
 def write_dataframe_with_borders(ws, cell, df):
 
     ws[cell].options(pd.DataFrame, header=1, index=False, expand="table").value = df
 
     last_row = ws[cell].row + df.shape[0]
-    last_col = ws[cell].column + df.shape[1] - 1
+    last_col = ws[cell].column + df.shape[1] - 2
     data_range = ws.range(ws[cell].address, ws[last_row, last_col].address)
 
     border_types = {
