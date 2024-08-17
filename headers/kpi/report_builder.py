@@ -17,6 +17,10 @@ class BuildReport(fo.FilePrep):
         super().__init__()
         self.dpt = dpt
         self.dpt_list = CS.GatherData().form_combo("department")
+        self.last_q = self.map_q()[0]
+        self.actual_q = self.map_q()[1]
+        self.last_df = self.split_by_snap()[0]
+        self.actual_df = self.split_by_snap()[1]
 
     def get_um_df(self, df):
         if self.dpt not in self.dpt_list:
@@ -75,10 +79,8 @@ class BuildReport(fo.FilePrep):
         return [int(total), int(fem), float(proc)]
 
     def build_report(self):
-        last_q = self.map_q()[0]
-        actual_q = self.map_q()[1]
 
-        rep_title = f"Q{last_q[1]} vs Q{actual_q[1]} {self.dpt}"
+        rep_title = f"{self.last_q[0]} {self.last_q[1]} vs {self.actual_q[0]} {self.actual_q[1]} {self.dpt}"
 
         rep_loc = os.path.join(os.getcwd(), "QvQ Files", rep_title)
 
@@ -86,9 +88,6 @@ class BuildReport(fo.FilePrep):
             self._build_report(rb, rep_loc)
 
     def _build_report(self, rb, rep_loc):
-
-        last_df = self.split_by_snap()[0]
-        actual_df = self.split_by_snap()[1]
 
         wb = rb.books.add()
         rb.display_alerts = False
@@ -100,7 +99,9 @@ class BuildReport(fo.FilePrep):
         ws1.range("B2:D2").merge()
         es.header_text_look(ws1, "A2:E2")
 
-        um_gen_df = kdep.EmployeeAnalytics(actual_df, self.dpt).get_market_UM_by_dpt()
+        um_gen_df = kdep.EmployeeAnalytics(
+            self.actual_df, self.dpt
+        ).get_market_UM_by_dpt()
 
         ws1["B4"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
             um_gen_df
@@ -112,33 +113,87 @@ class BuildReport(fo.FilePrep):
         ws1.range("B17:D17").merge()
         es.header2_text_look(ws1, "A17:E17")
 
-        um_members = kdep.EmployeeAnalytics(actual_df, self.dpt).get_um_members_w_data()
+        um_members = kdep.EmployeeAnalytics(
+            self.actual_df, self.dpt
+        ).get_um_members_w_data()
         ws1["B19"].options(
             pd.DataFrame, header=1, index=False, expand="table"
         ).value = um_members
 
         es.write_dataframe_with_borders(ws1, "B19", um_members)
 
-        um_qvq_data = [
-            self.get_gender_split_um(last_df),
-            self.get_gender_split_um(actual_df),
-        ]
+        um_qvq_df = pd.DataFrame(
+            {
+                " ": [
+                    f"{self.last_q[0]} {self.last_q[1]}",
+                    f"{self.actual_q[0]} {self.actual_q[1]}",
+                    "Progress",
+                ],
+                "Total": [
+                    self.get_gender_split_um(self.last_df)[0],  # Total for last_q
+                    self.get_gender_split_um(self.actual_df)[0],  # Total for actual_q
+                    calculus.compare_progress(
+                        self.get_gender_split_um(self.last_df)[0],
+                        self.get_gender_split_um(self.actual_df)[0],
+                    ),  # Total Progress
+                ],
+                "Women #": [
+                    self.get_gender_split_um(self.last_df)[1],  # Women # for last_q
+                    self.get_gender_split_um(self.actual_df)[1],  # Women # for actual_q
+                    calculus.compare_progress(
+                        self.get_gender_split_um(self.last_df)[1],
+                        self.get_gender_split_um(self.actual_df)[1],
+                    ),  # Women # Progress
+                ],
+                "Women %": [
+                    self.get_gender_split_um(self.last_df)[2],  # Women % for last_q
+                    self.get_gender_split_um(self.actual_df)[2],  # Women % for actual_q
+                    calculus.get_percentage(
+                        self.get_gender_split_um(self.last_df)[2],
+                        self.get_gender_split_um(self.actual_df)[2],
+                    ),
+                ],
+            }
+        )
 
-        qvq_columns = ["Previous Q", "Actual Q", "Progress"]
-
-        um_qvq_df = pd.DataFrame(um_qvq_data, columns=qvq_columns)
-
-        ws1["F3"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
+        ws1["F4"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
             um_qvq_df
         )
-        es.write_dataframe_with_borders(ws1, "F3", um_qvq_df)
+        es.write_dataframe_with_borders(ws1, "F4", um_qvq_df)
 
-        lm_qvq_data = [
-            self.get_gender_split_lm(last_df),
-            self.get_gender_split_lm(actual_df),
-        ]
-
-        lm_qvq_df = pd.DataFrame(lm_qvq_data, columns=qvq_columns)
+        lm_qvq_df = pd.DataFrame(
+            {
+                " ": [
+                    f"{self.last_q[0]} {self.last_q[1]}",
+                    f"{self.actual_q[0]} {self.actual_q[1]}",
+                    "Progress",
+                ],
+                "Total": [
+                    self.get_gender_split_lm(self.last_df)[0],  # Total for last_q
+                    self.get_gender_split_lm(self.actual_df)[0],  # Total for actual_q
+                    calculus.compare_progress(
+                        self.get_gender_split_lm(self.last_df)[0],
+                        self.get_gender_split_lm(self.actual_df)[0],
+                    ),  # Total Progress
+                ],
+                "Women #": [
+                    self.get_gender_split_lm(self.last_df)[1],  # Women # for last_q
+                    self.get_gender_split_lm(self.actual_df)[1],  # Women # for actual_q
+                    calculus.compare_progress(
+                        self.get_gender_split_lm(self.last_df)[1],
+                        self.get_gender_split_lm(self.actual_df)[1],
+                    ),  # Women # Progress
+                ],
+                "Women %": [
+                    self.get_gender_split_lm(self.last_df)[2],  # Women % for last_q
+                    self.get_gender_split_lm(self.actual_df)[2],  # Women % for actual_q
+                    calculus.get_percentage(
+                        self.get_gender_split_lm(self.last_df)[2],
+                        self.get_gender_split_lm(self.actual_df)[2],
+                    ),
+                ],
+            }
+        )
 
         ws1["F9"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
             um_qvq_df
@@ -149,20 +204,32 @@ class BuildReport(fo.FilePrep):
 
         ws2 = wb.sheets.add(name="Gender Split in Education")
 
+        ws2["C6"].value = "Under Construction"
+
         # =======================================================================================
 
         ws4 = wb.sheets.add(name="Movements")
+
+        ws4["B2"].value = "Movement List"
+        ws4.range("B2:D2").merge()
+        es.header_text_look(ws4, "A2:E2")
+
+        ws4["B4"].value = "Movements are specific to buisiness logic"
+        ws4.range("B4:D4").merge()
+        es.header2_text_look(ws4, "A4:E4")
+
+        ws4["B6"].value = "Under Construction"
 
         # =======================================================================================
         ws5 = wb.sheets.add(name="Actual Population")
 
         ws5["C2"].value = "Actual population for the current quarter"
 
-        ws5.range("B2:D2").merge()
-        es.header2_text_look(ws5, "B2:D2")
+        ws5.range("B2:E2").merge()
+        es.header2_text_look(ws5, "B2:E2")
 
         current_population = kdep.EmployeeAnalytics(
-            actual_df, self.dpt
+            self.actual_df, self.dpt
         ).get_actual_population()
 
         ws5["B4"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
@@ -183,7 +250,6 @@ class BuildReport(fo.FilePrep):
         ws6["F4"].value = "last_name"
         ws6["G4"].value = "Comments"
 
-        # TODO: Fix this border
         es.header3_text_look(ws6, "B4:G4")
         ws6.range("B4:G4").api.Borders.LineStyle = 1
         ws6.range("B4:G4").api.Borders.Weight = 2

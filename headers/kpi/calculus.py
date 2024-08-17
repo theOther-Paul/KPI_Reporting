@@ -21,6 +21,10 @@ def calculate_gap_value(val1, val2):
     return abs(val1 - val2)
 
 
-# TODO: implement this function
-def compare_progress():
-    pass
+def compare_progress(q_last, q_act):
+    if q_last < q_act:
+        return f"+{q_act-q_last}"
+    elif q_act < q_last:
+        return q_act - q_last
+    else:
+        return "0"

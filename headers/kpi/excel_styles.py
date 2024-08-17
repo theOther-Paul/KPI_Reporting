@@ -174,7 +174,7 @@ def write_dataframe_with_borders(ws, cell, df):
 
     ws[cell].options(pd.DataFrame, header=1, index=False, expand="table").value = df
 
-    last_row = ws[cell].row + df.shape[0]
+    last_row = ws[cell].row + df.shape[0] - 1
     last_col = ws[cell].column + df.shape[1] - 2
     data_range = ws.range(ws[cell].address, ws[last_row, last_col].address)
 
