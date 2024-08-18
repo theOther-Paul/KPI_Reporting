@@ -127,18 +127,12 @@ class BuildReport(fo.FilePrep):
         for thread in threads:
             thread.join()
 
-        ws1["B4"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
-            results["um_gen_df"]
-        )
         es.write_dataframe_with_borders(ws1, "B4", results["um_gen_df"])
 
         ws1["B17"].value = "Upper Management members"
         ws1.range("B17:D17").merge()
         es.header2_text_look(ws1, "A17:E17")
 
-        ws1["B19"].options(
-            pd.DataFrame, header=1, index=False, expand="table"
-        ).value = results["um_members"]
         es.write_dataframe_with_borders(ws1, "B19", results["um_members"])
 
         # Precompute gender splits
@@ -172,9 +166,6 @@ class BuildReport(fo.FilePrep):
             }
         )
 
-        ws1["F4"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
-            um_qvq_df
-        )
         es.write_dataframe_with_borders(ws1, "F4", um_qvq_df)
 
         lm_qvq_df = pd.DataFrame(
@@ -202,26 +193,26 @@ class BuildReport(fo.FilePrep):
             }
         )
 
-        ws1["F9"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
-            lm_qvq_df
-        )
         es.write_dataframe_with_borders(ws1, "F9", lm_qvq_df)
-
-        ws2 = wb.sheets.add(name="Gender Split in Education")
-        ws2["C6"].value = "Under Construction"
 
         ws4 = wb.sheets.add(name="Movements")
         ws4["B2"].value = "Movement List"
         ws4.range("B2:D2").merge()
         es.header_text_look(ws4, "A2:E2")
 
-        q_move = mv.EmployeeMovements(self.last_df, self.actual_df).get_all_movements(
-            self.dpt
-        )
+        q_move = mv.EmployeeMovements(
+            self.last_df, self.actual_df, self.dpt
+        ).get_all_movements()
         ws4["B4"].options(pd.DataFrame, header=1, index=False, expand="Table").value = (
             q_move
         )
         es.write_dataframe_with_borders(ws4, "B4", q_move)
+
+        summary_df = mv.EmployeeMovements(
+            self.last_df, self.actual_df, self.dpt
+        ).get_population_summary()
+
+        es.write_dataframe_with_borders(ws4, "B20", summary_df)
 
         ws5 = wb.sheets.add(name="Active Population")
         ws5["C2"].value = "Active population for the current quarter"
@@ -232,9 +223,6 @@ class BuildReport(fo.FilePrep):
             self.actual_df, self.dpt
         ).get_actual_population()
 
-        ws5["B4"].options(pd.DataFrame, header=1, index=False, expand="table").value = (
-            current_population
-        )
         es.write_dataframe_with_borders(ws5, "B4", current_population)
 
         ws6 = wb.sheets.add(name="Comments")
@@ -242,16 +230,17 @@ class BuildReport(fo.FilePrep):
         ws6.range("B2:G2").merge()
         es.header_text_look(ws6, "B2:G2")
 
-        ws6["B4"].value = "employee_id"
-        ws6["C4"].value = "employee_first_name"
-        ws6["D4"].value = "employee_last_name"
-        ws6["E4"].value = "Comments"
+        com_df = pd.DataFrame(
+            {
+                " ": ["Example"],
+                "employee_id": [2002],
+                "employee_first_name": ["Smith"],
+                "employee_last_name": ["Jane"],
+                "Comments": ["Moved to Sales before May-2024"],
+            }
+        )
 
-        ws6["A5"].value = "Example"
-        ws6["B5"].value = "2002"
-        ws6["E5"].value = "Smith"
-        ws6["F5"].value = "Jane"
-        ws6["G5"].value = "Moved to Sales before May-2024"
+        es.write_dataframe_with_borders(ws6, "A4", com_df)
 
         if "Sheet1" in [sheet.name for sheet in wb.sheets]:
             wb.sheets["Sheet1"].delete()
