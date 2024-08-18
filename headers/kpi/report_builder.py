@@ -1,5 +1,7 @@
+from email import header
 from . import kpi_department as kdep
 from . import kpi_market as kmkt
+from . import movements as mv
 import pandas as pd
 import os
 from . import calculus
@@ -208,18 +210,21 @@ class BuildReport(fo.FilePrep):
         ws2 = wb.sheets.add(name="Gender Split in Education")
         ws2["C6"].value = "Under Construction"
 
-        # TODO: add movemet logic from EmployeeMovements
         ws4 = wb.sheets.add(name="Movements")
         ws4["B2"].value = "Movement List"
         ws4.range("B2:D2").merge()
         es.header_text_look(ws4, "A2:E2")
-        ws4["B4"].value = "Movements are specific to business logic"
-        ws4.range("B4:D4").merge()
-        es.header2_text_look(ws4, "A4:E4")
-        ws4["B6"].value = "Under Construction"
 
-        ws5 = wb.sheets.add(name="Actual Population")
-        ws5["C2"].value = "Actual population for the current quarter"
+        q_move = mv.EmployeeMovements(self.last_df, self.actual_df).get_all_movements(
+            self.dpt
+        )
+        ws4["B4"].options(pd.DataFrame, header=1, index=False, expand="Table").value = (
+            q_move
+        )
+        es.write_dataframe_with_borders(ws4, "B4", q_move)
+
+        ws5 = wb.sheets.add(name="Active Population")
+        ws5["C2"].value = "Active population for the current quarter"
         ws5.range("B2:E2").merge()
         es.header2_text_look(ws5, "B2:E2")
 
@@ -238,7 +243,20 @@ class BuildReport(fo.FilePrep):
         es.header_text_look(ws6, "B2:G2")
 
         ws6["B4"].value = "employee_id"
+        ws6["C4"].value = "employee_first_name"
+        ws6["D4"].value = "employee_last_name"
         ws6["E4"].value = "Comments"
+
+        ws6["A5"].value = "Example"
+        ws6["B5"].value = "2002"
+        ws6["E5"].value = "Smith"
+        ws6["F5"].value = "Jane"
+        ws6["G5"].value = "Moved to Sales before May-2024"
+
+        if "Sheet1" in [sheet.name for sheet in wb.sheets]:
+            wb.sheets["Sheet1"].delete()
+
+        ws1.activate()
 
         wb.save(rep_loc)
         rb.display_alerts = True
