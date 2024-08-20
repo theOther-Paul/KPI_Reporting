@@ -1,4 +1,4 @@
-from email import header
+from concurrent.futures import thread
 from . import kpi_department as kdep
 from . import kpi_market as kmkt
 from . import movements as mv
@@ -10,6 +10,10 @@ import xlwings as xw
 import threading
 from .. import consolidate as CS
 from . import excel_styles as es
+from queue import Queue
+import pythoncom
+
+lock = threading.Lock()
 
 
 class BuildReport(fo.FilePrep):
@@ -80,173 +84,173 @@ class BuildReport(fo.FilePrep):
         rep_title = f"{self.last_q[0]} {self.last_q[1]} vs {self.actual_q[0]} {self.actual_q[1]} {self.dpt}.xlsx"
         rep_loc = os.path.join(os.getcwd(), "QvQ Files", rep_title)
 
-        with xw.App() as rb:
-            self._build_report(rb, rep_loc)
+        with xw.App(visible=False) as rb:
+            wb = rb.books.add()
+            rb.display_alerts = False
 
-    def _build_report(self, rb, rep_loc):
-        wb = rb.books.add()
-        rb.display_alerts = False
+            # Create sheets
+            ws1 = wb.sheets.add(name="Gender Split per market")
+            ws4 = wb.sheets.add(name="Movements")
+            ws5 = wb.sheets.add(name="Active Population")
+            ws6 = wb.sheets.add(name="Comments")
 
-        ws1 = wb.sheets.add(name="Gender Split per market")
-        ws1["B2"].value = "Market Lists with gender %"
-        ws1.range("B2:D2").merge()
-        es.header_text_look(ws1, "A2:E2")
+            q = Queue()
 
-        threads = []
-        results = {}
+            def populate_sheet(q):
+                pythoncom.CoInitialize()
+                try:
+                    while True:
+                        sheet, method, args = q.get()
+                        method(sheet, *args)
+                        q.task_done()
+                finally:
+                    pythoncom.CoUninitialize()
 
-        def thread_function(key, method, *args):
-            results[key] = method(*args)
+            # Start worker threads
+            for _ in range(4):  # Number of threads
+                t = threading.Thread(target=populate_sheet, args=(q,))
+                t.daemon = True
+                t.start()
 
-        threads.append(
-            threading.Thread(
-                target=thread_function,
-                args=(
-                    "um_gen_df",
-                    kdep.EmployeeAnalytics(
-                        self.actual_df, self.dpt
-                    ).get_market_UM_by_dpt,
-                ),
+            q.put((ws1, self.populate_gender_split, []))
+            q.put((ws4, self.populate_movements, []))
+            q.put((ws5, self.populate_population_summary, []))
+            q.put((ws6, self.populate_comments, []))
+
+            q.join()
+
+            # Clean up and save the workbook
+            if "Sheet1" in [sheet.name for sheet in wb.sheets]:
+                wb.sheets["Sheet1"].delete()
+
+            ws1.activate()
+            wb.save(rep_loc)
+            rb.display_alerts = True
+            wb.close()
+
+    def populate_gender_split(self, ws, *args):
+        with lock:
+            self._create_sheet_banner(
+                "Market Lists with gender %", ws, "B2:D2", "A2:E2"
             )
-        )
-        threads.append(
-            threading.Thread(
-                target=thread_function,
-                args=(
-                    "um_members",
-                    kdep.EmployeeAnalytics(
-                        self.actual_df, self.dpt
-                    ).get_um_members_w_data,
-                ),
+            um_gen_df = kdep.EmployeeAnalytics(
+                self.actual_df, self.dpt
+            ).get_market_UM_by_dpt()
+            um_members = kdep.EmployeeAnalytics(
+                self.actual_df, self.dpt
+            ).get_um_members_w_data()
+
+            es.write_dataframe_with_borders(ws, "B4", um_gen_df)
+            ws["B17"].value = "Upper Management members"
+            ws.range("B17:D17").merge()
+            es.header2_text_look(ws, "A17:E17")
+            es.write_dataframe_with_borders(ws, "B19", um_members)
+
+            last_um_split = self.get_gender_split_um(self.last_df)
+            actual_um_split = self.get_gender_split_um(self.actual_df)
+            last_lm_split = self.get_gender_split_lm(self.last_df)
+            actual_lm_split = self.get_gender_split_lm(self.actual_df)
+
+            um_qvq_df = pd.DataFrame(
+                {
+                    " ": [
+                        f"{self.last_q[0]} {self.last_q[1]}",
+                        f"{self.actual_q[0]} {self.actual_q[1]}",
+                        "Progress",
+                    ],
+                    "Total": [
+                        last_um_split[0],
+                        actual_um_split[0],
+                        calculus.compare_progress(last_um_split[0], actual_um_split[0]),
+                    ],
+                    "Women #": [
+                        last_um_split[1],
+                        actual_um_split[1],
+                        calculus.compare_progress(last_um_split[1], actual_um_split[1]),
+                    ],
+                    "Women %": [
+                        last_um_split[2],
+                        actual_um_split[2],
+                        calculus.get_percentage(last_um_split[2], actual_um_split[2]),
+                    ],
+                }
             )
-        )
 
-        for thread in threads:
-            thread.start()
+            es.write_dataframe_with_borders(ws, "F4", um_qvq_df)
 
-        for thread in threads:
-            thread.join()
+            lm_qvq_df = pd.DataFrame(
+                {
+                    " ": [
+                        f"{self.last_q[0]} {self.last_q[1]}",
+                        f"{self.actual_q[0]} {self.actual_q[1]}",
+                        "Progress",
+                    ],
+                    "Total": [
+                        last_lm_split[0],
+                        actual_lm_split[0],
+                        calculus.compare_progress(last_lm_split[0], actual_lm_split[0]),
+                    ],
+                    "Women #": [
+                        last_lm_split[1],
+                        actual_lm_split[1],
+                        calculus.compare_progress(last_lm_split[1], actual_lm_split[1]),
+                    ],
+                    "Women %": [
+                        last_lm_split[2],
+                        actual_lm_split[2],
+                        calculus.get_percentage(last_lm_split[2], actual_lm_split[2]),
+                    ],
+                }
+            )
 
-        es.write_dataframe_with_borders(ws1, "B4", results["um_gen_df"])
+            es.write_dataframe_with_borders(ws, "F9", lm_qvq_df)
 
-        ws1["B17"].value = "Upper Management members"
-        ws1.range("B17:D17").merge()
-        es.header2_text_look(ws1, "A17:E17")
+    def populate_movements(self, ws, *args):
+        with lock:
+            self._create_sheet_banner("Movement List", ws, "B2:D2", "A2:E2")
+            q_move = mv.EmployeeMovements(
+                self.last_df, self.actual_df, self.dpt
+            ).get_all_movements()
+            es.write_dataframe_with_borders(ws, "B4", q_move)
 
-        es.write_dataframe_with_borders(ws1, "B19", results["um_members"])
+            summary_df = mv.EmployeeMovements(
+                self.last_df, self.actual_df, self.dpt
+            ).get_population_summary()
+            es.write_dataframe_with_borders(ws, "B20", summary_df)
 
-        # Precompute gender splits
-        last_um_split = self.get_gender_split_um(self.last_df)
-        actual_um_split = self.get_gender_split_um(self.actual_df)
-        last_lm_split = self.get_gender_split_lm(self.last_df)
-        actual_lm_split = self.get_gender_split_lm(self.actual_df)
+    def populate_population_summary(self, ws, *args):
+        with lock:
+            ws["C2"].value = "Active population for the current quarter"
+            ws.range("B2:E2").merge()
+            es.header2_text_look(ws, "B2:E2")
 
-        um_qvq_df = pd.DataFrame(
-            {
-                " ": [
-                    f"{self.last_q[0]} {self.last_q[1]}",
-                    f"{self.actual_q[0]} {self.actual_q[1]}",
-                    "Progress",
-                ],
-                "Total": [
-                    last_um_split[0],
-                    actual_um_split[0],
-                    calculus.compare_progress(last_um_split[0], actual_um_split[0]),
-                ],
-                "Women #": [
-                    last_um_split[1],
-                    actual_um_split[1],
-                    calculus.compare_progress(last_um_split[1], actual_um_split[1]),
-                ],
-                "Women %": [
-                    last_um_split[2],
-                    actual_um_split[2],
-                    calculus.get_percentage(last_um_split[2], actual_um_split[2]),
-                ],
-            }
-        )
+            current_population = kdep.EmployeeAnalytics(
+                self.actual_df, self.dpt
+            ).get_actual_population()
+            es.write_dataframe_with_borders(ws, "B4", current_population)
 
-        es.write_dataframe_with_borders(ws1, "F4", um_qvq_df)
+    def populate_comments(self, ws, *args):
+        with lock:
+            self._create_sheet_banner(
+                "Please write your comments below, based on the table formula",
+                ws,
+                "B2:G2",
+                "B2:G2",
+            )
+            com_df = pd.DataFrame(
+                {
+                    " ": ["Example"],
+                    "employee_id": [2002],
+                    "employee_first_name": ["Smith"],
+                    "employee_last_name": ["Jane"],
+                    "Comments": ["Moved to Sales before May-2024"],
+                }
+            )
 
-        lm_qvq_df = pd.DataFrame(
-            {
-                " ": [
-                    f"{self.last_q[0]} {self.last_q[1]}",
-                    f"{self.actual_q[0]} {self.actual_q[1]}",
-                    "Progress",
-                ],
-                "Total": [
-                    last_lm_split[0],
-                    actual_lm_split[0],
-                    calculus.compare_progress(last_lm_split[0], actual_lm_split[0]),
-                ],
-                "Women #": [
-                    last_lm_split[1],
-                    actual_lm_split[1],
-                    calculus.compare_progress(last_lm_split[1], actual_lm_split[1]),
-                ],
-                "Women %": [
-                    last_lm_split[2],
-                    actual_lm_split[2],
-                    calculus.get_percentage(last_lm_split[2], actual_lm_split[2]),
-                ],
-            }
-        )
+            es.write_dataframe_with_borders(ws, "A4", com_df)
 
-        es.write_dataframe_with_borders(ws1, "F9", lm_qvq_df)
-
-        ws4 = wb.sheets.add(name="Movements")
-        ws4["B2"].value = "Movement List"
-        ws4.range("B2:D2").merge()
-        es.header_text_look(ws4, "A2:E2")
-
-        q_move = mv.EmployeeMovements(
-            self.last_df, self.actual_df, self.dpt
-        ).get_all_movements()
-        ws4["B4"].options(pd.DataFrame, header=1, index=False, expand="Table").value = (
-            q_move
-        )
-        es.write_dataframe_with_borders(ws4, "B4", q_move)
-
-        summary_df = mv.EmployeeMovements(
-            self.last_df, self.actual_df, self.dpt
-        ).get_population_summary()
-
-        es.write_dataframe_with_borders(ws4, "B20", summary_df)
-
-        ws5 = wb.sheets.add(name="Active Population")
-        ws5["C2"].value = "Active population for the current quarter"
-        ws5.range("B2:E2").merge()
-        es.header2_text_look(ws5, "B2:E2")
-
-        current_population = kdep.EmployeeAnalytics(
-            self.actual_df, self.dpt
-        ).get_actual_population()
-
-        es.write_dataframe_with_borders(ws5, "B4", current_population)
-
-        ws6 = wb.sheets.add(name="Comments")
-        ws6["B2"].value = "Please write your comments below, based on the table formula"
-        ws6.range("B2:G2").merge()
-        es.header_text_look(ws6, "B2:G2")
-
-        com_df = pd.DataFrame(
-            {
-                " ": ["Example"],
-                "employee_id": [2002],
-                "employee_first_name": ["Smith"],
-                "employee_last_name": ["Jane"],
-                "Comments": ["Moved to Sales before May-2024"],
-            }
-        )
-
-        es.write_dataframe_with_borders(ws6, "A4", com_df)
-
-        if "Sheet1" in [sheet.name for sheet in wb.sheets]:
-            wb.sheets["Sheet1"].delete()
-
-        ws1.activate()
-
-        wb.save(rep_loc)
-        rb.display_alerts = True
-        wb.close()
+    def _create_sheet_banner(self, banner_content, ws, banner_range, extended_range):
+        with lock:
+            ws["B2"].value = banner_content
+            ws.range(banner_range).merge()
+            es.header_text_look(ws, extended_range)
