@@ -252,20 +252,19 @@ class EmployeeMovements:
         calculated_actual_q_total = last_q_total - outflow_total + inflow_total
         calculated_actual_q_female = last_q_female - outflow_female + inflow_female
 
+        warnings = []
+
         if (
             calculated_actual_q_total != actual_q_total
             or calculated_actual_q_female != actual_q_female
         ):
-            print(
-                "Warning: Population calculation mismatch. Check your inflow/outflow logic."
+            warnings.extend(
+                (
+                    "Warning: Population calculation mismatch. Check your inflow/outflow logic.",
+                    f"Expected total: {calculated_actual_q_total}, Actual total: {actual_q_total}",
+                    f"Expected female: {calculated_actual_q_female}, Actual female: {actual_q_female}",
+                )
             )
-            print(
-                f"Expected total: {calculated_actual_q_total}, Actual total: {actual_q_total}"
-            )
-            print(
-                f"Expected female: {calculated_actual_q_female}, Actual female: {actual_q_female}"
-            )
-
         summary_data = {
             " ": ["Total Population", "Female #"],
             "Last_q population": [last_q_total, last_q_female],
@@ -274,4 +273,10 @@ class EmployeeMovements:
             "Actual_q population": [actual_q_total, actual_q_female],
         }
 
-        return pd.DataFrame(summary_data, index=["Population", "Females"])
+        summary_df = pd.DataFrame(summary_data, index=["Population", "Females"])
+
+        if warnings:
+            warnings_df = pd.DataFrame({"Warnings": warnings})
+            return summary_df, warnings_df
+
+        return summary_df, None
