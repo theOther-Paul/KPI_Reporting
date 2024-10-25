@@ -551,5 +551,3 @@ class AppFace:
             self.show_plot(e)
         elif selected_index == 3:
             self.show_settings(e)
-        elif selected_index == 4:
-            self.refresh_app(e)
