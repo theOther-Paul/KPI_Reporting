@@ -4,6 +4,8 @@ from logs.logger_class import GrabLogs
 from headers import file_ops, visuals, consolidate
 import pandas as pd
 import threading
+import subprocess
+import bt
 
 
 # The `AppFace` class creates a simple app interface with a sidebar navigation rail and content area
@@ -122,9 +124,6 @@ class AppFace:
                     icon=ft.icons.SETTINGS_OUTLINED,
                     selected_icon=ft.icons.SETTINGS_SHARP,
                     label="Settings",
-                ),
-                ft.NavigationDestination(
-                    icon=ft.icons.REFRESH_SHARP, label="Refresh App"
                 ),
             ],
             on_change=self.on_nav_change,
@@ -531,15 +530,6 @@ class AppFace:
                 on_click=lambda: self.logger.clear_logs(),
             ),
         ]
-        self.page.update()
-
-    def refresh_app(self, e):
-        t_open = threading.Thread(target=AppFace(ft.Page))
-        t_close = threading.Thread(target=self.page.window_close())
-
-        t_open.start()
-        t_close.start()
-
         self.page.update()
 
     def check_item_clicked(self, param):
