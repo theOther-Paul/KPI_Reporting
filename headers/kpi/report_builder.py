@@ -1,3 +1,4 @@
+import traceback
 from . import kpi_department as kdep
 from . import kpi_market as kmkt
 from . import movements as mv
@@ -87,9 +88,20 @@ class BuildReport(fo.FilePrep):
                 self._rb_tasks(wb, rep_loc)
             except Exception as e:
                 print(f"Failed to save the report called {rep_title} to {rep_loc}: {e}")
+                traceback.print_exc()
             finally:
                 rb.display_alerts = True
                 wb.close()
+
+    def build_report_all(self):
+        """
+        The `build_report_all` function iterates through a list of departments, prints a progress message
+        for each department, builds a report, and then prints a completion message for each department.
+        """
+        for dpt in self.dpt_list:
+            print(f"\n {dpt} report in progress")
+            self.build_report()
+            print(f"{dpt} report done")
 
     def _rb_tasks(self, wb, rep_loc):
         ws1 = wb.sheets.add(name="Gender Split per market")
@@ -127,11 +139,19 @@ class BuildReport(fo.FilePrep):
             self.actual_df, self.dpt
         ).get_um_members_w_data()
 
-        es.write_dataframe_with_borders(ws, "B4", um_gen_df)
+        if um_gen_df is None:
+            es.write_dataframe_with_borders(ws, "B4", calculus.std_mt_df())
+        else:
+            es.write_dataframe_with_borders(ws, "B4", um_gen_df)
+
         ws["B17"].value = "Upper Management members"
         ws.range("B17:D17").merge()
         es.header2_text_look(ws, "A17:E17")
-        es.write_dataframe_with_borders(ws, "B19", um_members)
+
+        if um_members is None:
+            es.write_dataframe_with_borders(ws, "B19", calculus.std_mt_df())
+        else:
+            es.write_dataframe_with_borders(ws, "B19", um_members)
 
         last_um_split = self.get_gender_split_um(self.last_df)
         actual_um_split = self.get_gender_split_um(self.actual_df)

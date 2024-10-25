@@ -1,5 +1,5 @@
 import flet as ft
-from headers.kpi import kpi_department, kpi_market
+from headers.kpi import kpi_department, kpi_market, report_builder
 from logs.logger_class import GrabLogs
 from headers import file_ops, visuals, consolidate
 import pandas as pd
@@ -285,8 +285,18 @@ class AppFace:
                                 ft.ElevatedButton(
                                     "Generate QvQ report",
                                     icon="add",
-                                    on_click=lambda _: print("Button clicked!"),
-                                )
+                                    on_click=lambda _: report_builder.BuildReport(
+                                        self.dpt_rp_drop_var
+                                    ).build_report(),
+                                ),
+                                # TODO: needs to be added on a new control
+                                ft.ElevatedButton(
+                                    "Generate QvQ all reports",
+                                    icon="add",
+                                    on_click=lambda _: report_builder.BuildReport(
+                                        self.dpt_rp_drop_var
+                                    ).build_report_all(),
+                                ),
                             ]
                         ),
                     ]

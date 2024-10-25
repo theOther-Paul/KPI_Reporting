@@ -28,3 +28,7 @@ def compare_progress(q_last, q_act):
         return q_act - q_last
     else:
         return "0"
+
+
+def std_mt_df():
+    return pd.DataFrame(columns=["This Table", "has", "no data"])
