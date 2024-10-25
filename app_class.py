@@ -64,6 +64,7 @@ class AppFace:
         self.dpt_rp_dropdown = ft.Dropdown(
             hint_text="Choose a department",
             width=300,
+            height=60,
             options=[ft.dropdown.Option(value) for value in self.dpt_rp_drop],
             on_change=self.dpt_rp_drop_changed,
         )
@@ -226,6 +227,7 @@ class AppFace:
         dialog.open = True
         self.page.update()
 
+    # TODO: Redo UI in a more cohesive manner, to make the app make use of empty space
     def show_report_downloader(self, e):
         self.content.controls = [
             ft.Text("This Section is used to check data and download reports"),
@@ -281,6 +283,7 @@ class AppFace:
                         ),
                         ft.Column(
                             [
+                                ft.Text(),
                                 ft.ElevatedButton(
                                     "Generate QvQ report",
                                     icon="add",
@@ -288,22 +291,37 @@ class AppFace:
                                         self.dpt_rp_drop_var
                                     ).build_report(),
                                 ),
-                                # TODO: needs to be added on a new control
-                                ft.ElevatedButton(
-                                    "Generate QvQ all reports",
-                                    icon="add",
-                                    on_click=lambda _: report_builder.BuildReport(
-                                        self.dpt_rp_drop_var
-                                    ).build_report_all(),
-                                ),
                             ]
                         ),
                     ]
                 ),
                 margin=10,
                 padding=10,
+                width=650,
+                height=100,
                 alignment=ft.alignment.center,
                 bgcolor=ft.colors.BLUE_500,
+                border_radius=10,
+            ),
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text("Generate all QvQ reports"),
+                        ft.ElevatedButton(
+                            "Generate all",
+                            icon="add",
+                            on_click=lambda _: report_builder.BuildReport(
+                                self.dpt_rp_drop_var
+                            ).build_report_all(),
+                        ),
+                    ]
+                ),
+                margin=10,
+                padding=10,
+                alignment=ft.alignment.center,
+                bgcolor=ft.colors.GREEN,
+                width=200,
+                height=100,
                 border_radius=10,
             ),
         ]
