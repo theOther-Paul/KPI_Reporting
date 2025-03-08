@@ -22,6 +22,17 @@ def calculate_gap_value(val1, val2):
 
 
 def compare_progress(q_last, q_act):
+    """
+    The function `compare_progress` compares two quantities and returns the difference between them with
+    appropriate signs.
+    
+    :param q_last: The `q_last` parameter represents the last recorded progress value
+    :param q_act: The `q_act` parameter represents the actual progress made in a certain task or goal
+    :return: The function `compare_progress` compares two quantities `q_last` and `q_act` and returns
+    the difference between them. If `q_act` is greater than `q_last`, it returns the positive difference
+    as a string with a plus sign (e.g., "+5"). If `q_last` is greater than `q_act`, it returns the
+    negative difference. If they are equal, it
+    """
     if q_last < q_act:
         return f"+{q_act-q_last}"
     elif q_act < q_last:

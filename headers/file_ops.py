@@ -18,6 +18,8 @@ Its primary purpose is to manage the source file, raw_data, by handling tasks su
 """
 
 
+# The `FilePrep` class in Python contains methods for opening, updating, appending, clearing, and
+# manipulating data in Excel files, with logging and error handling functionalities.
 class FilePrep:
     def __init__(self) -> None:
         self.file_name = "raw_data\\personnel3.xlsx"
@@ -114,6 +116,10 @@ class FilePrep:
             workbook.close()
 
     def __undo_upload(self):
+        """
+        The function `__undo_upload` is a placeholder method that prints a message indicating it is to be
+        developed.
+        """
         print("undo method to be developed")
 
     def __clear_df(self):
@@ -152,6 +158,11 @@ class FilePrep:
         return snap_list
 
     def map_quarters(self):
+        """
+        The `map_quarters` function extracts quarter information based on month and year from a given list.
+        :return: The `map_quarters` method is returning the second and first elements of the `key_list` in
+        that order.
+        """
         snap = last_quarters(self.__snap_list())
         month = [val[:3] for val in snap]
         year = [val[-2:] for val in snap]
@@ -204,6 +215,15 @@ class FilePrep:
         )
 
     def __dump_to_df(self, df_to_dump: pd.DataFrame):
+        """
+        This function dumps a pandas DataFrame to an Excel file and logs the outcome.
+        
+        :param df_to_dump: The `df_to_dump` parameter is a pandas DataFrame that contains the data to be
+        dumped into an Excel file. The method `__dump_to_df` attempts to write this DataFrame to an Excel
+        file specified by `self.file_name`. If successful, a log message is created indicating that the new
+        DataFrame
+        :type df_to_dump: pd.DataFrame
+        """
         try:
             df_to_dump.to_excel(self.file_name, index=False)
             self.grab_logs.form_log(
@@ -217,6 +237,19 @@ class FilePrep:
             )
 
     def asign_market(self, df: pd.DataFrame):
+        """
+        The function `asign_market` assigns continents to countries in a DataFrame and returns the updated
+        DataFrame.
+        
+        :param df: The `df` parameter in the `asign_market` method is a Pandas DataFrame that is being
+        passed as input to the method. The method seems to be assigning a continent to each country in the
+        DataFrame and then returning a new DataFrame with the continent information added as a new column
+        named "market
+        :type df: pd.DataFrame
+        :return: The `asign_market` method is returning a DataFrame that is the result of assigning
+        continents to countries in the input DataFrame `df` based on the mapping provided by `c_map` and
+        then dumping the result into a new DataFrame using the `__dump_to_df` method.
+        """
         new_df = self.c_map.assign_continent(df, "country", "market")
         return self.__dump_to_df(new_df)
 
@@ -305,9 +338,7 @@ def add_quarter_for_snap2list(list_of_lists):
     The function `add_quarter_for_snap2list` iterates through a list of lists and updates the second
     element of each inner list with the quarter value obtained from a function `get_quarter_for_snap`.
 
-    :param list_of_lists: It seems like the code snippet you provided is incomplete. Could you please
-    provide me with the contents of the `list_of_lists` variable so that I can assist you further with
-    the `add_quarter_for_snap2list` function?
+    :param list_of_lists: It seems like the code snippet you provided is incomplete.
     :return: The function `add_quarter_for_snap2list` is returning the `list_of_lists` after modifying
     the second element of each sublist to contain the quarter obtained from the `get_quarter_for_snap`
     function.
@@ -352,6 +383,18 @@ def split_by_snap_custom(choosen_df, column_for_snap):
 
 
 def convert_date_string(date_str: str) -> str:
+    """
+    The function `convert_date_string` takes a date string in the format "dd/mm/yyyy" and converts it to
+    a string in the format "MMM-yyyy".
+    
+    :param date_str: Thank you for providing the code snippet. It looks like you are trying to convert a
+    date string in the format "dd/mm/yyyy" to a different format "MMM-YYYY"
+    :type date_str: str
+    :return: The `convert_date_string` function takes a date string in the format "dd/mm/yyyy", converts
+    it to a datetime object, and then returns a formatted date string in the format "MMM-YYYY" (e.g.,
+    "Jan-2022"). If the input date string is not in the correct format, it will return an error message
+    indicating the ValueError that occurred.
+    """
     try:
         date_obj = datetime.strptime(date_str, "%d/%m/%Y")
         return date_obj.strftime("%b-%Y")

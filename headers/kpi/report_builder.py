@@ -27,6 +27,17 @@ class BuildReport(fo.FilePrep):
             raise ValueError(f"{self.dpt} not in {self.dpt_list}")
 
     def get_um_df(self, df):
+        """
+        The function `get_um_df` filters a DataFrame based on specified pay grades and department.
+        
+        :param df: The `get_um_df` method takes a DataFrame `df` as input. It filters the DataFrame based on
+        the conditions specified in the code and returns a subset of the DataFrame that meets those
+        conditions. The conditions include filtering rows where the "pay_grade" is one of ["G37", "G
+        :return: The `get_um_df` method is returning a subset of the input DataFrame `df` where the
+        pay_grade is in the list ["G37", "G38", "G39", "G40", "G41"] and the department matches the
+        department stored in the `self.dpt` attribute. The returned DataFrame contains columns "first_name",
+        "last_name", "gender", and "
+        """
         self._check_department_validity()
         return df.loc[
             (df["pay_grade"].isin(["G37", "G38", "G39", "G40", "G41"]))
